@@ -141,6 +141,3 @@ def suggest_resolution(error_description, cause_analysis):
             }
         ]
     }
-
-
-if __name__ == '__main__':
