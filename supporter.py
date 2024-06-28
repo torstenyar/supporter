@@ -8,7 +8,6 @@ import base64
 
 from PIL import Image
 from io import BytesIO
-from dotenv import load_dotenv
 from utils.azure_data_loader import load_task_data
 from utils.azure_openai_client import initialize_client
 
@@ -296,7 +295,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
     return json.loads(response.choices[0].message.content)
 
 
-def perform_cause_analysis(error_description, recent_steps, log_file, process_description, screenshot):
+def perform_cause_analysis():
     return {
         "type": "section",
         "text": {
@@ -306,7 +305,7 @@ def perform_cause_analysis(error_description, recent_steps, log_file, process_de
     }
 
 
-def suggest_resolution(error_description, cause_analysis):
+def suggest_resolution():
     return {
         "type": "section",
         "fields": [

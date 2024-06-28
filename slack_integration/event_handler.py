@@ -98,7 +98,6 @@ def handle_event(data):
             error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr,
                                                            preceding_steps_log, screenshot)
 
-
             cause_analysis = perform_cause_analysis()
             resolution = suggest_resolution()
 
