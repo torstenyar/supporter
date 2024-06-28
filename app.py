@@ -8,14 +8,6 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-
-@app.route('/')
-def hello():
-    app.logger.debug('Handling request to root endpoint')
-    return "Hello World!"
-
 
 @app.route('/slack/events', methods=['POST'])
 def slack_events():

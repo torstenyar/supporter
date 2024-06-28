@@ -25,7 +25,7 @@ reaction_tracker = {}
 def handle_event(data):
     event = data.get('event', {})
     logging.info(f"Received event: {event}")
-    client = initialize_client()
+    az_client = initialize_client()
 
     if event.get('type') == 'reaction_added' and event.get('reaction') == 'yara-sup-1':
         user_id = event.get('user')
@@ -95,7 +95,7 @@ def handle_event(data):
                 process_description = process_row['ProcessDescription']
                 preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
 
-            error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr,
+            error_description = generate_error_description(az_client, client_name, task_name, point_of_failure_descr,
                                                            preceding_steps_log, screenshot)
 
             cause_analysis = perform_cause_analysis()
