@@ -151,13 +151,21 @@ def determine_point_of_failure(log_file):
     if not nested_tasks:
         if skipped_steps:
             output_string = (
-                f"The robot failed at step '{failed_step['name']}' following the successful completion of step '{last_completed_step['name']}', deliberately skipping some intermediate steps. "
-                f"This failure occurred within the main task '{main_task.split('\\')[-1]}'."
+                "The robot failed at step '{failed_step}' following the successful completion of step '{last_completed_step}', deliberately skipping some intermediate steps. "
+                "This failure occurred within the main task '{main_task}'.".format(
+                    failed_step=failed_step['name'],
+                    last_completed_step=last_completed_step['name'],
+                    main_task=main_task.split('\\')[-1]
+                )
             )
         else:
             output_string = (
-                f"The robot failed at step '{failed_step['name']}' immediately after the successful completion of step '{last_completed_step['name']}'. "
-                f"This failure occurred within the main task '{main_task.split('\\')[-1]}'."
+                "The robot failed at step '{failed_step}' immediately after the successful completion of step '{last_completed_step}'. "
+                "This failure occurred within the main task '{main_task}'.".format(
+                    failed_step=failed_step['name'],
+                    last_completed_step=last_completed_step['name'],
+                    main_task=main_task.split('\\')[-1]
+                )
             )
     else:
         nested_tasks_list = list(nested_tasks)
@@ -165,28 +173,50 @@ def determine_point_of_failure(log_file):
             nested_task = nested_tasks_list[0]
             if skipped_steps:
                 output_string = (
-                    f"The robot failed at step '{failed_step['name']}' following the successful completion of step '{last_completed_step['name']}', deliberately skipping some intermediate steps. "
-                    f"This failure occurred within the task '{nested_task.split('\\')[-1]}', which is part of the main task '{main_task.split('\\')[-1]}' in this run."
+                    "The robot failed at step '{failed_step}' following the successful completion of step '{last_completed_step}', deliberately skipping some intermediate steps. "
+                    "This failure occurred within the task '{nested_task}', which is part of the main task '{main_task}' in this run.".format(
+                        failed_step=failed_step['name'],
+                        last_completed_step=last_completed_step['name'],
+                        nested_task=nested_task.split('\\')[-1],
+                        main_task=main_task.split('\\')[-1]
+                    )
                 )
             else:
                 output_string = (
-                    f"The robot failed at step '{failed_step['name']}' immediately after the successful completion of step '{last_completed_step['name']}'. "
-                    f"This failure occurred within the task '{nested_task.split('\\')[-1]}', which is part of the main task '{main_task.split('\\')[-1]}' in this run."
+                    "The robot failed at step '{failed_step}' immediately after the successful completion of step '{last_completed_step}'. "
+                    "This failure occurred within the task '{nested_task}', which is part of the main task '{main_task}' in this run.".format(
+                        failed_step=failed_step['name'],
+                        last_completed_step=last_completed_step['name'],
+                        nested_task=nested_task.split('\\')[-1],
+                        main_task=main_task.split('\\')[-1]
+                    )
                 )
         else:
             nested_task_hierarchy = " -> ".join(task.split('\\')[-1] for task in nested_tasks_list)
             if skipped_steps:
                 output_string = (
-                    f"The robot failed at step '{failed_step['name']}' following the successful completion of step '{last_completed_step['name']}', deliberately skipping some intermediate steps. "
-                    f"This failure is part of the nested tasks hierarchy: {nested_task_hierarchy}. The main task in this run is '{main_task.split('\\')[-1]}'."
+                    "The robot failed at step '{failed_step}' following the successful completion of step '{last_completed_step}', deliberately skipping some intermediate steps. "
+                    "This failure is part of the nested tasks hierarchy: {nested_task_hierarchy}. The main task in this run is '{main_task}'.".format(
+                        failed_step=failed_step['name'],
+                        last_completed_step=last_completed_step['name'],
+                        nested_task_hierarchy=nested_task_hierarchy,
+                        main_task=main_task.split('\\')[-1]
+                    )
                 )
             else:
                 output_string = (
-                    f"The robot failed at step '{failed_step['name']}' immediately after the successful completion of step '{last_completed_step['name']}'. "
-                    f"This failure is part of the nested tasks hierarchy: {nested_task_hierarchy}. The main task in this run is '{main_task.split('\\')[-1]}'."
+                    "The robot failed at step '{failed_step}' immediately after the successful completion of step '{last_completed_step}'. "
+                    "This failure is part of the nested tasks hierarchy: {nested_task_hierarchy}. The main task in this run is '{main_task}'.".format(
+                        failed_step=failed_step['name'],
+                        last_completed_step=last_completed_step['name'],
+                        nested_task_hierarchy=nested_task_hierarchy,
+                        main_task=main_task.split('\\')[-1]
+                    )
                 )
 
     return output_string, failed_step_id
+
+
 
 
 def load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10):
