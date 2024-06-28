@@ -19,5 +19,8 @@ EXPOSE 80
 # Set environment variables from .env file (if needed)
 ENV PORT=80
 
+# Ensure logs are sent to stdout/stderr
+ENV PYTHONUNBUFFERED=1
+
 # Run the Flask application
 CMD ["python", "app.py"]
