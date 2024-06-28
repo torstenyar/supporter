@@ -1,10 +1,6 @@
 from flask import Flask, request, jsonify
 from slack_integration.event_handler import handle_event
-from dotenv import load_dotenv
 import logging
-
-# Load environment variables from .env file
-load_dotenv()
 
 app = Flask(__name__)
 

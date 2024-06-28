@@ -5,8 +5,6 @@ from dotenv import load_dotenv
 import pandas as pd
 import json
 
-# Load the .env file
-load_dotenv()
 
 # Get the connection string from the environment variable
 connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
