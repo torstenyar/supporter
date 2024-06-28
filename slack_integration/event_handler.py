@@ -1,19 +1,19 @@
-import json
 import logging
-from .message_handler import fetch_message, react_to_message, send_message
+from .message_handler import fetch_message, send_message
 from .slack_client import bot_user_id
-from supporter import (
+from utils.azure_data_loader import load_task_data
+from utils.azure_openai_client import initialize_client
+from utils.supporter import (
     load_log_file,
     load_screenshot,
-    load_process_description,
-    load_preceding_steps,
     determine_point_of_failure,
+    load_descr_preceding_steps,
+    load_log_preceding_steps,
     generate_error_description,
     perform_cause_analysis,
     suggest_resolution,
     extract_data_from_message
 )
-import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,7 @@ reaction_tracker = {}
 def handle_event(data):
     event = data.get('event', {})
     logging.info(f"Received event: {event}")
+    client = initialize_client()
 
     if event.get('type') == 'reaction_added' and event.get('reaction') == 'yara-sup-1':
         user_id = event.get('user')
@@ -82,15 +83,24 @@ def handle_event(data):
             # Determine point of failure
             point_of_failure_descr, failed_step_id = determine_point_of_failure(log_file)
 
-            # Load process description and preceding steps
-            process_description = load_process_description()
-            recent_steps = load_preceding_steps()
+            # Load the preceding steps
+            preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id)
 
-            # Generate content
-            error_description_completion = generate_error_description(recent_steps, log_file, process_description, screenshot)
-            cause_analysis = perform_cause_analysis(error_description_completion, recent_steps, log_file, process_description,
-                                                    screenshot)
-            resolution = suggest_resolution(error_description_completion, cause_analysis)
+            process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
+
+            process_description = None
+            preceding_steps_descr = None
+
+            if az_record_found:
+                process_description = process_row['ProcessDescription']
+                preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
+
+            error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr,
+                                                           preceding_steps_log, screenshot)
+
+
+            cause_analysis = perform_cause_analysis()
+            resolution = suggest_resolution()
 
             # Create the response blocks
             blocks_analysis = [
@@ -101,7 +111,7 @@ def handle_event(data):
                         "text": "*:memo: _What went wrong?_*"
                     }
                 },
-                point_of_failure_descr + '\n\n' + error_description_completion,
+                error_description,
                 {
                     "type": "section",
                     "text": {

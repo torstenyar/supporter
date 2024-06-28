@@ -1,4 +1,4 @@
-from archive.src.azure_data_loader import load_task_data
+from utils.azure_data_loader import load_task_data
 
 
 def load_process_description():

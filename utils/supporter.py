@@ -4,9 +4,13 @@ import json
 import requests
 import hashlib
 import os
+import base64
+
 from PIL import Image
 from io import BytesIO
 from dotenv import load_dotenv
+from utils.azure_data_loader import load_task_data
+from utils.azure_openai_client import initialize_client
 
 # Load the .env file
 load_dotenv()
@@ -88,21 +92,15 @@ def load_screenshot(run_id):
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
         image = Image.open(BytesIO(response.content))
-        image.save(f"{run_id}_screenshot.png")  # Save the image with the run_id as the filename
-        return image
+
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+        return img_str
     except requests.exceptions.RequestException as e:
         logging.error(f"Error fetching screenshot: {e}")
         return None
-
-
-def load_process_description():
-    # Load process descriptions and preceding step descriptions directly from azure
-    return "process_description"
-
-
-def load_preceding_steps():
-    # Load preceding steps descriptions
-    return "preceding_steps"
 
 
 def determine_point_of_failure(log_file):
@@ -195,19 +193,110 @@ def determine_point_of_failure(log_file):
     return output_string, failed_step_id
 
 
+def load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10):
+    # Parse the log file (assuming it's a JSON string)
+    log_entries = json.loads(log_file)
+
+    # Find the index of the failed step
+    failed_step_index = next(
+        (index for (index, entry) in enumerate(log_entries) if entry.get('stepUuid') == failed_step_id), None)
+
+    if failed_step_index is None:
+        return "No failed step found with the provided step ID"
+
+    # Traverse backwards from the failed step to collect the last 10 STEP_COMPLETED steps
+    preceding_steps = []
+    count = 0
+    for i in range(failed_step_index - 1, -1, -1):
+        if log_entries[i]['eventType'] == 'STEP_COMPLETED':
+            preceding_steps.append(log_entries[i])
+            count += 1
+            if count >= steps_to_include:
+                break
+
+    # Reverse the list to maintain chronological order
+    preceding_steps.reverse()
+
+    # Include the failed step as the last element
+    preceding_steps.append(log_entries[failed_step_index])
+
+    return preceding_steps
+
+
+def load_descr_preceding_steps(preceding_steps, described_steps):
+    # create list with names
+    ids = [step['stepUuid'] for step in preceding_steps if 'stepUuid' in step]
+
+    # Load preceding steps descriptions
+    return "preceding_steps"
+
+
 def generate_overview_of_changed_variables(log_file):
     # generates overview of variables that changed during the task run at which steps. -> Important for Cause Analysis
     return "overview"
 
 
-def generate_error_description(recent_steps, log_file, process_description, screenshot):
-    return {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": "*Objective description:* The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page."
+def generate_error_description(client, customer_name, process_name, point_of_failure, steps_log, screenshot):
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an AI assistant that objectively describes an occurred error in an automated workflow. "
+                "The objective description should be placed in a JSON object given by the user.\n\n"
+                "Context:\n"
+                "You will help Yarado in delivering support to processes that run into an error. Yarado is an automation company in the Netherlands. "
+                "It automates business processes using its own in-house developed software platform called the 'Yarado Client'. The automated processes are developed with the Yarado Client and hosted on Azure Virtual Machines (on which the Yarado Client is installed). "
+                "The automated runs happen in the cloud/background, so no human is watching the screen when the automated process is running.\n"
+                "-> The JSON code you will encounter stems from creating an automated process with our own in-house developed application called the Yarado Client. Our normal way of working is that we manage an Azure VM for our client (in this case {customer_name}), we install the Yarado Client on this VM, and then we automate their business processes using their user accounts (as if we are a new colleague).\n"
+                "-> Step Flow: Yarado steps are identified by 'coords' (x.y), showing task progression from 1.1 down rows. Steps may shift across columns under conditions like unmet criteria. The task files may also include coordinates such as 'x.y.i.j'. These stem from subtask steps, where x.y still indicates the maintask step coordinates, but i.j indicate the subtask coordinate.\n\n"
+                "Sometimes, these processes run into a problem/error. Because we are not actually watching what is happening on the screen, it takes a lot of time to figure out what happened. Common error types include:\n"
+                "- Input errors (e.g., incorrect or invalid data)\n"
+                "- Application errors (e.g., slow web browser, unresponsive application)\n"
+                "- Changes in systems (e.g., missing elements, changed xpaths)\n"
+                "- Typical RPA and automation errors (e.g., UI automation issues, API failures)\n\n"
+                "Role:\n"
+                "You will be helping us in objectively describing the occurred error, thereby helping the employees giving support to this process.\n\n"
+                "Input:\n"
+                f"The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
+                "To be able to do the given objective, you will be provided with three main input sources (each delimited between triple '>' characters) by the user:\n"
+                "1. The log data of the last 10 steps taken during the execution of this process:\n"
+                f"{steps_log}\n"
+                "2. The screenshot of the window that could be seen right before the error took place (see attached).\n"
+            )
+        },
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": (
+                    "Complete the mrkdwn text within the JSON object below. Return the entire JSON object only.\n"
+                    "```json\n"
+                    "{\n"
+                    "  \"type\": \"section\",\n"
+                    "  \"text\": {\n"
+                    "    \"type\": \"mrkdwn\",\n"
+                    f"    \"text\": \"*Objective description:* {point_of_failure}\\n\\n"
+                    "[Concluding paragraph: Very short summary of the process description and how it relates to what it was doing at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
+                    "  }\n"
+                    "}\n"
+                    "```"
+                )},
+                {"type": "image_url",
+                 "image_url": {
+                     "url": f"data:image/jpeg;base64,{screenshot}"
+                     }
+                 }
+            ]
         }
-    }
+    ]
+
+    response = client.chat.completions.create(
+        model="generate_descriptions",
+        messages=messages,
+        temperature=0.3,
+        response_format={"type": "json_object"}
+    )
+
+    return json.loads(response.choices[0].message.content)
 
 
 def perform_cause_analysis(error_description, recent_steps, log_file, process_description, screenshot):
@@ -249,11 +338,30 @@ def suggest_resolution(error_description, cause_analysis):
 
 
 if __name__ == '__main__':
-    run_id = 'a02fb765-009e-481f-bf4e-b65156d5840d'
+    run_id = 'f17122e2-99b9-41bf-9159-6d39a422c788'
+    client_name = 'Nieuwe Stroom'
+    task_name = 'Nieuwe-Stroom-MinderNL-Main'
+
+    client = initialize_client()
+
     log = load_log_file(run_id)
+    image = load_screenshot(run_id)
 
     point_of_failure_descr, failed_step_id = determine_point_of_failure(log)
-    print(failed_step_id)
-    print(point_of_failure_descr)
-    # image = load_screenshot(run_id)
+
+    # Load the preceding steps
+    preceding_steps_log = load_log_preceding_steps(log, failed_step_id)
+
+    process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
+
+    process_description = None
+    preceding_steps_descr = None
+
+    if az_record_found:
+        process_description = process_row['ProcessDescription']
+        preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
+
+    error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr, preceding_steps_log, image)
+
+    print(json.dumps(error_description, indent=2))
     # Decode the JSON string back into a JSON object

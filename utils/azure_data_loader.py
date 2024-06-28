@@ -138,20 +138,18 @@ def return_row_df(df, customer_name, process_name):
 
     # Define the conditions for substring matching in a case-insensitive manner
     condition1 = df['Customer Name'].str.lower().str.contains(customer_name_lower)
-    condition2 = df['Customer Name'].str.lower().str.contains(process_name_lower)
-    condition3 = df['Process Name'].str.lower().str.contains(customer_name_lower)
-    condition4 = df['Process Name'].str.lower().str.contains(process_name_lower)
+    condition2 = df['Process Name'].str.lower().str.contains(process_name_lower)
 
     # Combine the conditions
-    combined_condition = condition1 | condition2 | condition3 | condition4
+    combined_condition = condition1 & condition2
 
     # Filter the DataFrame based on the combined condition
     matching_rows = df[combined_condition]
 
     if len(matching_rows) == 1:
-        return matching_rows.iloc[0]
+        return matching_rows.iloc[0], True
     else:
-        raise ValueError("Process cannot be found in the Azure DB")
+        return None, False
 
 
 def load_task_data(customer_name, process_name):
@@ -169,23 +167,27 @@ def load_task_data(customer_name, process_name):
     df = import_table_as_df(table_service, table_name)
 
     # Find the matching row
-    process_row = return_row_df(df, customer_name, process_name)
+    process_row, found = return_row_df(df, customer_name, process_name)
 
-    # Get the task data URL
-    task_data_url = process_row['TaskDescriptionURL']
+    if found:
+        # Get the task data URL
+        task_data_url = process_row['TaskDescriptionURL']
 
-    # Extract the file path from the URL
-    file_path = 'jsonfiles/' + task_data_url.split('/')[-1]
+        # Extract the file path from the URL
+        file_path = 'jsonfiles/' + task_data_url.split('/')[-1]
 
-    # Download the task data file
-    task_file = download_file_from_azure(file_path)
+        # Download the task data file
+        task_file = download_file_from_azure(file_path)
 
-    return process_row, task_file
+        return process_row, task_file, found
+
+    else:
+        return process_row, None, found
 
 
 if __name__ == '__main__':
     # Load task data for the specified customer and process
-    process_row, task_data = load_task_data('NieuweStroom', 'MinderNL-Main')
+    process_row, task_data, found = load_task_data('Nieuwe Stroom', 'Nieuwe-Stroom-MinderNL-Main')
 
-    print(process_row)
+    print(found)
 
