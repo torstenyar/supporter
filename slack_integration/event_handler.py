@@ -3,7 +3,7 @@ from .message_handler import fetch_message, send_message
 from .slack_client import bot_user_id
 from utils.azure_data_loader import load_task_data
 from utils.azure_openai_client import initialize_client
-from utils.supporter import (
+from supporter import (
     load_log_file,
     load_screenshot,
     determine_point_of_failure,

@@ -12,9 +12,6 @@ from dotenv import load_dotenv
 from utils.azure_data_loader import load_task_data
 from utils.azure_openai_client import initialize_client
 
-# Load the .env file
-load_dotenv()
-
 YARADO_API_KEY = os.getenv('YARADO_API_KEY')
 
 PRIO_TRANSLATIONS = {
