@@ -4,14 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Added point of failure description">
-      <change afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/azure_openai_client.py" afterDir="false" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Generate error descriptions">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/azure_data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/azure_data_loader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/archive/src/data_loader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,8 +52,8 @@
       <recent name="$PROJECT_DIR$/data" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/utils" />
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/utils" />
       <recent name="$PROJECT_DIR$/archive" />
       <recent name="$PROJECT_DIR$/.venv" />
     </key>
@@ -143,7 +138,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/supporter.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/supporter.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -193,7 +188,23 @@
       <option name="project" value="LOCAL" />
       <updated>1719568068950</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Generate error descriptions">
+      <option name="closed" value="true" />
+      <created>1719586238660</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1719586238660</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Generate error descriptions">
+      <option name="closed" value="true" />
+      <created>1719586757798</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1719586757798</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -213,6 +224,7 @@
     </ignored-roots>
     <MESSAGE value="Second commit" />
     <MESSAGE value="Added point of failure description" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added point of failure description" />
+    <MESSAGE value="Generate error descriptions" />
+    <option name="LAST_COMMIT_MESSAGE" value="Generate error descriptions" />
   </component>
 </project>
