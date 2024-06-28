@@ -2,3 +2,4 @@ flask
 slack_sdk
 requests
 python-dotenv
+pillow

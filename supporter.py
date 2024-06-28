@@ -4,6 +4,12 @@ import json
 import requests
 import hashlib
 import os
+from PIL import Image
+from io import BytesIO
+from dotenv import load_dotenv
+
+# Load the .env file
+load_dotenv()
 
 YARADO_API_KEY = os.getenv('YARADO_API_KEY')
 
@@ -53,6 +59,7 @@ def extract_data_from_message(message):
 def get_sha256(api_key):
     return hashlib.sha256(api_key.encode()).hexdigest()
 
+
 def load_log_file(run_id):
     endpoint = f"https://api.yarado.com/v1/task-runs/{run_id}/log"
     headers = {
@@ -61,10 +68,16 @@ def load_log_file(run_id):
     try:
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
-        return response.text
+        log_json = json.loads(response.text)  # Assuming 'log' is a stringified JSON
+
+        # Pretty print the JSON object
+        pretty_log = json.dumps(log_json, indent=2, ensure_ascii=False)
+
+        return pretty_log
     except requests.exceptions.RequestException as e:
         logging.error(f"Error fetching log file: {e}")
         return None
+
 
 def load_screenshot(run_id):
     endpoint = f"https://api.yarado.com/v1/task-runs/{run_id}/screenshot"
@@ -74,7 +87,9 @@ def load_screenshot(run_id):
     try:
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
-        return response.content
+        image = Image.open(BytesIO(response.content))
+        image.save(f"{run_id}_screenshot.png")  # Save the image with the run_id as the filename
+        return image
     except requests.exceptions.RequestException as e:
         logging.error(f"Error fetching screenshot: {e}")
         return None
@@ -91,8 +106,98 @@ def load_preceding_steps():
 
 
 def determine_point_of_failure(log_file):
-    # Determine the point of failure based on log file
-    return "point_of_failure"
+    # Parse the log file (assuming it's a JSON string)
+    log_entries = json.loads(log_file)
+
+    # Find the index of the TASK_FAILED event
+    task_failed_index = next(
+        (index for (index, entry) in enumerate(log_entries) if entry['eventType'] == 'TASK_FAILED'), None)
+
+    if task_failed_index is None:
+        return "No TASK_FAILED event found"
+
+    # Traverse backwards from the TASK_FAILED event to find the last STEP_COMPLETED event
+    steps_after_last_completed = []
+    for i in range(task_failed_index - 1, -1, -1):
+        if log_entries[i]['eventType'] == 'STEP_COMPLETED':
+            # We found the last successful step before the failure
+            steps_after_last_completed.append(log_entries[i])
+            break
+        steps_after_last_completed.append(log_entries[i])
+
+    # Reverse the list to maintain chronological order
+    steps_after_last_completed.reverse()
+
+    # Generate the output string
+    if not steps_after_last_completed:
+        return "No steps found after the last STEP_COMPLETED and before TASK_FAILED"
+
+    last_completed_step = steps_after_last_completed[0]
+    failed_step = None
+    skipped_steps = False
+    failed_step_id = None
+
+    # Check for skipped steps
+    for i in range(1, len(steps_after_last_completed)):
+        step = steps_after_last_completed[i]
+        if step['eventType'] == 'STEP_FAILED':
+            failed_step = step
+            failed_step_id = failed_step['stepUuid']
+            if i > 1:
+                skipped_steps = True
+            break
+
+    main_task_step = next((step for step in steps_after_last_completed[::-1] if 'task' in step), None)
+    main_task = main_task_step['task'] if main_task_step else "Unknown main task"
+
+    # Determine the main task and any nested tasks
+    nested_tasks = set(
+        step['task'] for step in steps_after_last_completed if 'task' in step and step['task'] != main_task)
+
+    if not nested_tasks:
+        if skipped_steps:
+            output_string = (
+                f"The robot failed at step '{failed_step['name']}' following the successful completion of step '{last_completed_step['name']}', deliberately skipping some intermediate steps. "
+                f"This failure occurred within the main task '{main_task.split('\\')[-1]}'."
+            )
+        else:
+            output_string = (
+                f"The robot failed at step '{failed_step['name']}' immediately after the successful completion of step '{last_completed_step['name']}'. "
+                f"This failure occurred within the main task '{main_task.split('\\')[-1]}'."
+            )
+    else:
+        nested_tasks_list = list(nested_tasks)
+        if len(nested_tasks_list) == 1:
+            nested_task = nested_tasks_list[0]
+            if skipped_steps:
+                output_string = (
+                    f"The robot failed at step '{failed_step['name']}' following the successful completion of step '{last_completed_step['name']}', deliberately skipping some intermediate steps. "
+                    f"This failure occurred within the task '{nested_task.split('\\')[-1]}', which is part of the main task '{main_task.split('\\')[-1]}' in this run."
+                )
+            else:
+                output_string = (
+                    f"The robot failed at step '{failed_step['name']}' immediately after the successful completion of step '{last_completed_step['name']}'. "
+                    f"This failure occurred within the task '{nested_task.split('\\')[-1]}', which is part of the main task '{main_task.split('\\')[-1]}' in this run."
+                )
+        else:
+            nested_task_hierarchy = " -> ".join(task.split('\\')[-1] for task in nested_tasks_list)
+            if skipped_steps:
+                output_string = (
+                    f"The robot failed at step '{failed_step['name']}' following the successful completion of step '{last_completed_step['name']}', deliberately skipping some intermediate steps. "
+                    f"This failure is part of the nested tasks hierarchy: {nested_task_hierarchy}. The main task in this run is '{main_task.split('\\')[-1]}'."
+                )
+            else:
+                output_string = (
+                    f"The robot failed at step '{failed_step['name']}' immediately after the successful completion of step '{last_completed_step['name']}'. "
+                    f"This failure is part of the nested tasks hierarchy: {nested_task_hierarchy}. The main task in this run is '{main_task.split('\\')[-1]}'."
+                )
+
+    return output_string, failed_step_id
+
+
+def generate_overview_of_changed_variables(log_file):
+    # generates overview of variables that changed during the task run at which steps. -> Important for Cause Analysis
+    return "overview"
 
 
 def generate_error_description(recent_steps, log_file, process_description, screenshot):
@@ -141,3 +246,14 @@ def suggest_resolution(error_description, cause_analysis):
             }
         ]
     }
+
+
+if __name__ == '__main__':
+    run_id = 'a02fb765-009e-481f-bf4e-b65156d5840d'
+    log = load_log_file(run_id)
+
+    point_of_failure_descr, failed_step_id = determine_point_of_failure(log)
+    print(failed_step_id)
+    print(point_of_failure_descr)
+    # image = load_screenshot(run_id)
+    # Decode the JSON string back into a JSON object

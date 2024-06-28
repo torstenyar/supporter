@@ -13,6 +13,7 @@ def supporter():
     # If available, load process descriptions and preceding step descriptions directly from azure:
     process_description = load_process_description()
     preceding_steps = load_preceding_steps() # USE ID of PoF (not step coords or names)
+    # Compare with steps in log file, if a step id is present in the last 10 steps taken in the log file but not present in the described steps, let the process describe these steps first.
 
     # Else (if row is not present in azure table):
     # Generate step descriptions and create process description and push to azure, then load the process description and preceding step descriptions directly from azure

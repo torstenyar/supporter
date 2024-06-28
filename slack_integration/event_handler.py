@@ -57,14 +57,12 @@ def handle_event(data):
             logging.info(f"Run ID: {run_id}")
 
             # Check if any element is None and send a failure message if so
-            if not all([client_name, task_name, prio, run_id]):
+            if not all([client_name, task_name, run_id]):
                 error_message = "Error: I was unable to extract the necessary information from the message :cry:.\n"
                 if not client_name:
                     error_message += "- Client Name could not be found.\n"
                 if not task_name:
                     error_message += "- Task Name could not be found.\n"
-                if not prio:
-                    error_message += "- Priority could not be found.\n"
                 if not run_id:
                     error_message += "- Run ID could not be found."
 
@@ -73,28 +71,26 @@ def handle_event(data):
                 return
 
             # Send initial acknowledgment message
-            initial_message = "Thanks for your request! I will take a moment to analyze the cause of this error. Will come back to you ASAP :hourglass_flowing_sand:"
+            initial_message = ("Thanks for your request! I will take a moment to analyze the cause of this error. Will "
+                               "come back to you ASAP :hourglass_flowing_sand:")
             send_message(channel_id, message_timestamp, initial_message, as_text=True)
-
-            # Simulate delay for analysis
-            time.sleep(5)  # Adjust the delay as needed
 
             # Load log data and screenshot
             log_file = load_log_file(run_id)
             screenshot = load_screenshot(run_id)
 
             # Determine point of failure
-            point_of_failure = determine_point_of_failure(log_file)
+            point_of_failure_descr, failed_step_id = determine_point_of_failure(log_file)
 
             # Load process description and preceding steps
             process_description = load_process_description()
             recent_steps = load_preceding_steps()
 
             # Generate content
-            error_description = generate_error_description(recent_steps, log_file, process_description, screenshot)
-            cause_analysis = perform_cause_analysis(error_description, recent_steps, log_file, process_description,
+            error_description_completion = generate_error_description(recent_steps, log_file, process_description, screenshot)
+            cause_analysis = perform_cause_analysis(error_description_completion, recent_steps, log_file, process_description,
                                                     screenshot)
-            resolution = suggest_resolution(error_description, cause_analysis)
+            resolution = suggest_resolution(error_description_completion, cause_analysis)
 
             # Create the response blocks
             blocks_analysis = [
@@ -105,7 +101,7 @@ def handle_event(data):
                         "text": "*:memo: _What went wrong?_*"
                     }
                 },
-                error_description,
+                point_of_failure_descr + '\n\n' + error_description_completion,
                 {
                     "type": "section",
                     "text": {
@@ -128,14 +124,7 @@ def handle_event(data):
                         "text": "*Resolution steps:* To resolve this issue, follow these steps:"
                     }
                 },
-                resolution,
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"*Priority:* {prio}"
-                    }
-                }
+                resolution
             ]
 
             # Send the detailed response message using blocks

@@ -185,7 +185,7 @@ def load_task_data(customer_name, process_name):
 
 if __name__ == '__main__':
     # Load task data for the specified customer and process
-    process_row, task_file = load_task_data('NieuweStroom', 'MinderNL-Main')
+    process_row, task_data = load_task_data('NieuweStroom', 'MinderNL-Main')
 
     print(process_row)
 
