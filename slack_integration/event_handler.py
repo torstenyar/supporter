@@ -23,7 +23,7 @@ reaction_tracker = {}
 
 def handle_event(data):
     event = data.get('event', {})
-    logging.info(f"Received event: {event}")
+    logging.info("Received event: {}".format(event))
     az_client = initialize_client()
 
     if event.get('type') == 'reaction_added' and event.get('reaction') == 'yara-sup-1':
@@ -35,7 +35,7 @@ def handle_event(data):
         channel_id = event['item']['channel']
         message_timestamp = event['item']['ts']
 
-        logging.info(f"Handling reaction_added event for channel {channel_id} and timestamp {message_timestamp}")
+        logging.info("Handling reaction_added event for channel {} and timestamp {}".format(channel_id, message_timestamp))
 
         # Check if this reaction was already processed
         if reaction_tracker.get((channel_id, message_timestamp)):
@@ -47,18 +47,18 @@ def handle_event(data):
 
         message = fetch_message(channel_id, message_timestamp)
         if message:
-            logging.info(f"Fetched message!")
+            logging.info("Fetched message!")
 
             # Extract data from the message
             client_name, task_name, prio, run_id = extract_data_from_message(message)
-            logging.info(f"Client Name: {client_name}")
-            logging.info(f"Task Name: {task_name}")
-            logging.info(f"Prio: {prio}")
-            logging.info(f"Run ID: {run_id}")
+            logging.info("Client Name: {}".format(client_name))
+            logging.info("Task Name: {}".format(task_name))
+            logging.info("Prio: {}".format(prio))
+            logging.info("Run ID: {}".format(run_id))
 
             # Check if any element is None and send a failure message if so
             if not all([client_name, task_name, run_id]):
-                error_message = "Error: I was unable to extract the necessary information from the message :cry:.\n"
+                error_message = ":warning: Error: I was unable to extract the necessary information from the message :cry:.\n"
                 if not client_name:
                     error_message += "- Client Name could not be found.\n"
                 if not task_name:
@@ -77,7 +77,24 @@ def handle_event(data):
 
             # Load log data and screenshot
             log_file = load_log_file(run_id)
+            if log_file is None:
+                error_message = ":warning: Error: Unable to fetch the log file. Please try again later."
+                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                return
+            elif log_file == "INVALID_JSON":
+                error_message = ":warning: Error: At this moment only JSON formatted log files are supported."
+                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                return
+
             screenshot = load_screenshot(run_id)
+            if screenshot is None:
+                error_message = ":warning: Error: Unable to fetch the screenshot. Please try again later."
+                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                return
+            elif screenshot == "INVALID_IMAGE":
+                error_message = ":warning: Error: The screenshot is not a valid image."
+                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                return
 
             # Determine point of failure
             point_of_failure_descr, failed_step_id = determine_point_of_failure(log_file)
@@ -135,8 +152,10 @@ def handle_event(data):
         channel_id = event['item']['channel']
         message_timestamp = event['item']['ts']
 
-        logging.info(f"Handling reaction_removed event for channel {channel_id} and timestamp {message_timestamp}")
+        logging.info("Handling reaction_removed event for channel {} and timestamp {}".format(channel_id, message_timestamp))
 
         # Remove the processed mark
         if reaction_tracker.get((channel_id, message_timestamp)):
             del reaction_tracker[(channel_id, message_timestamp)]
+
+

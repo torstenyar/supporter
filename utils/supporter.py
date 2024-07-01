@@ -7,10 +7,10 @@ import os
 import base64
 
 # Uncomment below for local testing
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
-#load_dotenv()
+load_dotenv()
 
 from PIL import Image
 from io import BytesIO
@@ -67,41 +67,49 @@ def get_sha256(api_key):
 
 
 def load_log_file(run_id):
-    endpoint = f"https://api.yarado.com/v1/task-runs/{run_id}/log"
+    endpoint = "https://api.yarado.com/v1/task-runs/{}/log".format(run_id)
     headers = {
         "X-API-KEY": get_sha256(YARADO_API_KEY)
     }
     try:
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
-        log_json = json.loads(response.text)  # Assuming 'log' is a stringified JSON
 
-        # Pretty print the JSON object
-        pretty_log = json.dumps(log_json, indent=2, ensure_ascii=False)
+        try:
+            log_json = json.loads(response.text)
+            # Pretty print the JSON object
+            pretty_log = json.dumps(log_json, indent=2, ensure_ascii=False)
+            return pretty_log
+        except json.JSONDecodeError:
+            logging.error("Log file is not in JSON format.")
+            return "INVALID_JSON"
 
-        return pretty_log
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching log file: {e}")
+        logging.error("Error fetching log file: {}".format(e))
         return None
 
 
 def load_screenshot(run_id):
-    endpoint = f"https://api.yarado.com/v1/task-runs/{run_id}/screenshot"
+    endpoint = "https://api.yarado.com/v1/task-runs/{}/screenshot".format(run_id)
     headers = {
         "X-API-KEY": get_sha256(YARADO_API_KEY)
     }
     try:
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
-        image = Image.open(BytesIO(response.content))
 
-        buffered = BytesIO()
-        image.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        try:
+            image = Image.open(BytesIO(response.content))
+            buffered = BytesIO()
+            image.save(buffered, format="JPEG")
+            img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+            return img_str
+        except IOError:
+            logging.error("Error processing the screenshot image.")
+            return "INVALID_IMAGE"
 
-        return img_str
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching screenshot: {e}")
+        logging.error("Error fetching screenshot: {}".format(e))
         return None
 
 
@@ -374,6 +382,8 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "1. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
                 "{steps_log}\n>>>\n"
                 "2. The screenshot of the window that could be seen right before the error took place (see attached).\n"
+                "Output Format:\n"
+                "You should provide the cause analysis in the form of a JSON object. Return the entire JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs.\n"
             ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1, steps_log=steps_log)
         },
         {
@@ -387,7 +397,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                     "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
                     "    \"text\": \"*Objective description:* {point_of_failure}\\n\\n"
-                    "[Concluding paragraph: Very short summary of the process description and how it relates to what it was doing at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
+                    "Write a short concluding paragraph, i.e. Very short summary of the process description and how it relates to what it was doing at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
                     "  }}\n"
                     "}}\n"
                     "```"
@@ -445,14 +455,14 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Example:\n"
                 "In a previous analysis, the failure occurred during step 8.4 'Trigger error' because the process was unable to find the input file it was looking for. This was evident from earlier steps logged in the process. Specifically, in step 5.1, the directory 'C:\\Users\\ENE01\\OneDrive - 1Energielabel\\Registraties\\Juni 2024' was not found, which led to the variable '%input_file_exists%' being set to 'False' in step 6.1. Consequently, the condition in step 7.1 'Input file exists?' was unsatisfied, leading to the process displaying a message that the input file does not exist in step 7.4. Finally, in step 8.4 'Trigger error', the process attempted to proceed but failed due to the missing input file. The root cause, however, was identified as 'Sharepoint not syncing so the robot cannot find the file'.\n\n"
                 "Additional Examples:\n"
-                "These examples show a potential obvious cause versus an underlying deeper root cause. Always ensure you iteratively reason backwards to find the potential root cause."
+                "These examples show a potential obvious cause versus an underlying deeper root cause. Always ensure you iteratively reason backwards to find the potential root cause.\n"
                 "1. An error occurred at step 10.2 'Submit form' because the form could not be submitted. Looking back, step 7.3 'Fill form' showed a slow response time from the server, causing delays. Further investigation revealed that in step 5.1 'Load page', the page took unusually long to load, indicating a network issue. The root cause was identified as 'Network congestion causing delays in loading and form submission'.\n"
                 "2. A failure happened at step 12.5 'Validate data' due to incorrect data format. Tracing back, step 9.1 'Fetch data from API' logged the received data as incomplete. Checking earlier, step 6.4 'API request' indicated a timeout warning, suggesting intermittent connectivity issues. The root cause was identified as 'Unstable internet connection leading to incomplete data retrieval from API'.\n"
                 "3. An error occurred at step 9.3 'Save record' because the database was unresponsive. Looking back, step 6.2 'Connect to database' showed a connection delay. Further analysis revealed that in step 4.1 'Initialize database connection', a warning about high database load was logged. The root cause was identified as 'High database load causing delayed responses and unavailability'.\n"
                 "4. A failure happened at step 11.4 'Generate report' due to missing data fields. Tracing back, step 8.2 'Aggregate data' showed incomplete data sets. Investigating further, step 5.5 'Fetch data from source' indicated partial data retrieval. The root cause was identified as 'Data source server outage leading to incomplete data retrieval'.\n"
                 "5. An issue occurred at step 7.1 'Send email' because the email server rejected the request. Looking back, step 6.3 'Prepare email content' logged an unusually large attachment. Further analysis of step 4.4 'Fetch attachment' revealed that the file size exceeded the email server's limit. The root cause was identified as 'Attachment size exceeding email server limit causing email rejection'.\n\n"
                 "Output Format:\n"
-                "You should provide the cause analysis in the form of a JSON object. Return the entire JSON object only.\n"
+                "You should provide the cause analysis in the form of a JSON object. Return the entire JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs.\n"
                 "```json\n"
                 "{{\n"
                 "  \"type\": \"section\",\n"
@@ -483,7 +493,7 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
             "role": "user",
             "content": [
                 {"type": "text", "text": (
-                    "Complete the mrkdwn text within the JSON object below by filling out the placeholder. Remember that it should form the answer to the question: 'Why did it go wrong? What led me to believe this is the case?'. Return the entire filled out JSON object only.\n"
+                    "Complete the mrkdwn text within the JSON object below by filling out the placeholder. Remember that it should form the answer to the question: 'Why did it go wrong? What led me to believe this is the case?'. Return the entire filled out JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs.\n"
                     "```json\n"
                     "{{\n"
                     "  \"type\": \"section\",\n"
@@ -506,7 +516,7 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
     response = client.chat.completions.create(
         model="generate_descriptions",
         messages=messages,
-        temperature=0.9,
+        temperature=1.0,
         response_format={"type": "json_object"}
     )
 
@@ -514,9 +524,9 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
 
 
 if __name__ == '__main__':
-    run_id = '3bf9bdf7-9a96-4113-9d2e-bc31285ca7f1'
-    client_name = '1energielabel'
-    task_name = 'record_processing_monday'
+    run_id = 'ba88468a-a82f-4931-ba2d-8d501e966fb8'
+    client_name = 'Numidia'
+    task_name = 'Post_Transport_Invoices-Finance-'
 
     client = initialize_client()
 
