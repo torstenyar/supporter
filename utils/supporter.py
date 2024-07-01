@@ -377,30 +377,32 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "Your target audience is the employees of Yarado who provide support to processes running into problems. Errors pop up in Slack, triggering the Yarado-supporter (the name of the AI model) to provide support. The output will also be sent in Slack.\n\n"
                 "Input:\n"
                 "The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
-                "To be able to do the given objective, you will be provided with two main input sources (each delimited between triple '>' characters):\n"
-                "1. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
+                "To be able to do the given objective, you will be provided with three main input sources (each delimited between triple '>' characters):\n"
+                "1. The description of the point of failure of the run under investigation:\n>>>\n"
+                "{point_of_failure}\n>>>\n"
+                "2. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
                 "{steps_log}\n>>>\n"
-                "2. The screenshot of the window that could be seen right before the error took place (see attached).\n"
+                "3. The screenshot of the window that could be seen right before the error took place (see attached).\n"
                 "You can subtly add layout/formatting to the output JSON (by including markdown formatted text or indicating emojis with enclosed ':' signs)."
             ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1,
-                     steps_log=steps_log)
+                     point_of_failure=point_of_failure, steps_log=steps_log)
         },
         {
             "role": "user",
             "content": [
                 {"type": "text", "text": (
-                    "Complete the mrkdwn text within the JSON object below. Return the entire JSON object only. Ensure the 'point of failure' input text is fully transformed and interweaved into your objective description.\n"
+                    "Complete the mrkdwn text within the JSON object below. Return the entire JSON object only. Ensure to start with a very objective description of the error under investigation, clearly describing at which step, which loop, and in which task the error occured (also indicate if it is in the first loop).\n"
                     "```json\n"
                     "{{\n"
                     "  \"type\": \"section\",\n"
                     "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Objective description:* [Rewrite the following part so that it flows naturally with the part thereafter. Clearly indicate in which task the error occurred, at which loop, etc. Input sentence 'point of failure': {point_of_failure}]\\n\\n"
+                    "    \"text\": \"*Objective description:* [very objective paragraph about the error under study]\\n\\n"
                     "[Write a short and objective concluding paragraph, summarizing the process description and how it relates to the error at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
                     "  }}\n"
                     "}}\n"
                     "```"
-                ).format(point_of_failure=point_of_failure)},
+                )},
                 {"type": "image_url",
                  "image_url": {
                      "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)

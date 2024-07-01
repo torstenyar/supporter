@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Comments">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Channel id check">
       <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -323,7 +323,23 @@
       <option name="project" value="LOCAL" />
       <updated>1719858690831</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Comments and small adjustment for objective descriptions">
+      <option name="closed" value="true" />
+      <created>1719859554759</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1719859554759</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Channel id check">
+      <option name="closed" value="true" />
+      <created>1719860476081</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1719860476081</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -348,6 +364,8 @@
     <MESSAGE value="Removed bugs" />
     <MESSAGE value="Included error handling for non JSON log files" />
     <MESSAGE value="Comments" />
-    <option name="LAST_COMMIT_MESSAGE" value="Comments" />
+    <MESSAGE value="Comments and small adjustment for objective descriptions" />
+    <MESSAGE value="Channel id check" />
+    <option name="LAST_COMMIT_MESSAGE" value="Channel id check" />
   </component>
 </project>
