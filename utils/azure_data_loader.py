@@ -1,7 +1,6 @@
 from azure.cosmosdb.table.tableservice import TableService
 from azure.storage.fileshare import ShareServiceClient
 import os
-from dotenv import load_dotenv
 import pandas as pd
 import json
 

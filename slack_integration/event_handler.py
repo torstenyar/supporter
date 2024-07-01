@@ -3,15 +3,15 @@ from .message_handler import fetch_message, send_message
 from .slack_client import bot_user_id
 from utils.azure_data_loader import load_task_data
 from utils.azure_openai_client import initialize_client
-from supporter import load_log_file
-from supporter import load_screenshot
-from supporter import determine_point_of_failure
-from supporter import load_descr_preceding_steps
-from supporter import load_log_preceding_steps
-from supporter import generate_error_description
-from supporter import perform_cause_analysis
-from supporter import suggest_resolution
-from supporter import extract_data_from_message
+from utils.supporter import load_log_file
+from utils.supporter import load_screenshot
+from utils.supporter import determine_point_of_failure
+from utils.supporter import load_descr_preceding_steps
+from utils.supporter import load_log_preceding_steps
+from utils.supporter import generate_error_description
+from utils.supporter import perform_cause_analysis
+from utils.supporter import suggest_resolution
+from utils.supporter import extract_data_from_message
 
 
 # Configure logging

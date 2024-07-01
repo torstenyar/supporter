@@ -6,7 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Generate error descriptions">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/supporter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/cause_analysis.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/data_loader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/error_description.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/resolution_suggestion.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/utils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/utils/log_parser.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/utils/screenshot_analyzer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/src/utils/text_generator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/archive/supporter.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/azure_data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/azure_data_loader.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,8 +67,8 @@
       <recent name="$PROJECT_DIR$/data" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/utils" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/archive" />
       <recent name="$PROJECT_DIR$/.venv" />
     </key>
@@ -138,7 +153,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/supporter.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/supporter.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -244,7 +259,23 @@
       <option name="project" value="LOCAL" />
       <updated>1719590472055</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Generate error descriptions">
+      <option name="closed" value="true" />
+      <created>1719591140857</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1719591140857</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Generate error descriptions">
+      <option name="closed" value="true" />
+      <created>1719591560689</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1719591560689</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

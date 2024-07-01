@@ -7,6 +7,7 @@ app = Flask(__name__)
 
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
+    logging.info('Starting Yarado supporter...')
     data = request.json
     if "challenge" in data:
         return jsonify({"challenge": data["challenge"]})

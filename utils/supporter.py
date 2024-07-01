@@ -389,5 +389,4 @@ if __name__ == '__main__':
 
     error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr, preceding_steps_log, image)
 
-    print(json.dumps(error_description, indent=2))
     # Decode the JSON string back into a JSON object
