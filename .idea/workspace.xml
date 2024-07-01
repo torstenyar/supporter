@@ -4,24 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Generate error descriptions">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Removed bugs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/cause_analysis.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/data_loader.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/error_description.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/resolution_suggestion.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/utils/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/utils/log_parser.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/utils/screenshot_analyzer.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/src/utils/text_generator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/archive/supporter.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/azure_data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/azure_data_loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -275,7 +261,23 @@
       <option name="project" value="LOCAL" />
       <updated>1719591560689</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Removed bugs">
+      <option name="closed" value="true" />
+      <created>1719818249512</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1719818249512</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Removed bugs">
+      <option name="closed" value="true" />
+      <created>1719818849204</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1719818849204</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -296,6 +298,7 @@
     <MESSAGE value="Second commit" />
     <MESSAGE value="Added point of failure description" />
     <MESSAGE value="Generate error descriptions" />
-    <option name="LAST_COMMIT_MESSAGE" value="Generate error descriptions" />
+    <MESSAGE value="Removed bugs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed bugs" />
   </component>
 </project>

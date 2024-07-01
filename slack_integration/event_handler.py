@@ -10,8 +10,8 @@ from utils.supporter import load_descr_preceding_steps
 from utils.supporter import load_log_preceding_steps
 from utils.supporter import generate_error_description
 from utils.supporter import perform_cause_analysis
-from utils.supporter import suggest_resolution
 from utils.supporter import extract_data_from_message
+from utils.supporter import generate_textual_overview
 
 
 # Configure logging
@@ -83,7 +83,10 @@ def handle_event(data):
             point_of_failure_descr, failed_step_id = determine_point_of_failure(log_file)
 
             # Load the preceding steps
-            preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id)
+            preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10)
+
+            # Create changes of variables overview
+            variable_changes = generate_textual_overview(log_file, preceding_steps_log)
 
             process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
 
@@ -97,8 +100,8 @@ def handle_event(data):
             error_description = generate_error_description(az_client, client_name, task_name, point_of_failure_descr,
                                                            preceding_steps_log, screenshot)
 
-            cause_analysis = perform_cause_analysis()
-            resolution = suggest_resolution()
+            cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log, screenshot,
+                                                    error_description, variable_changes)
 
             # Create the response blocks
             blocks_analysis = [
@@ -117,22 +120,7 @@ def handle_event(data):
                         "text": "*:mag: _Why did it go wrong? What led me to believe this is the case?_*"
                     }
                 },
-                cause_analysis,
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*:hammer_and_wrench: _What steps do you need to take to resolve the issue?_*"
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Resolution steps:* To resolve this issue, follow these steps:"
-                    }
-                },
-                resolution
+                cause_analysis
             ]
 
             # Send the detailed response message using blocks
