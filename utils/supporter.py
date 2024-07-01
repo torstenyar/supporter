@@ -5,6 +5,13 @@ import requests
 import hashlib
 import os
 import base64
+
+# Uncomment below for local testing
+#from dotenv import load_dotenv
+
+# Load environment variables from .env file
+#load_dotenv()
+
 from PIL import Image
 from io import BytesIO
 from utils.azure_data_loader import load_task_data
@@ -128,7 +135,7 @@ def determine_point_of_failure(log_file):
     # Generate the output string
     if len(steps_after_last_completed) <= 1:
         return "No steps were found after the last STEP_COMPLETED and before TASK_FAILED, meaning the task failed without any specific step failing.", \
-        steps_after_last_completed[0]['stepUuid']
+            steps_after_last_completed[0]['stepUuid']
 
     last_completed_step = steps_after_last_completed[0]
 
@@ -316,21 +323,24 @@ def generate_textual_overview(log_data, preceding_log_steps):
                       "", "#### Variable Changes:"]
 
     if not relevant_variables:
-        overview_lines.append(f"No variables changed within the included window of {len(preceding_log_steps)-1} preceding log steps.")
+        overview_lines.append(
+            "No variables changed within the included window of {steps} preceding log steps.".format(steps=len(preceding_log_steps) - 1))
     else:
         filtered_variable_changes = {var: changes for var, changes in variable_changes.items() if var in relevant_variables}
 
         if not filtered_variable_changes:
-            overview_lines.append(f"No relevant variable changes found within the included window of {len(preceding_log_steps)-1} preceding log steps.")
+            overview_lines.append(
+                "No relevant variable changes found within the included window of {steps} preceding log steps.".format(steps=len(preceding_log_steps) - 1))
         else:
             for variable, changes in filtered_variable_changes.items():
                 initial_value = changes[0]['oldValue']
-                overview_lines.append(f"\n1. **Variable: {variable}**")
-                overview_lines.append(f"   - Initial Value: \"{initial_value}\"")
+                overview_lines.append("\n1. **Variable: {variable}**".format(variable=variable))
+                overview_lines.append("   - Initial Value: \"{initial_value}\"".format(initial_value=initial_value))
                 overview_lines.append("   - Changes:")
                 for change in changes:
                     overview_lines.append(
-                        f"     - Step ID: {change['stepId']} | Loop: {change['loop']} | New Value: \"{change['newValue']}\"")
+                        "     - Step ID: {stepId} | Loop: {loop} | New Value: \"{newValue}\"".format(
+                            stepId=change['stepId'], loop=change['loop'], newValue=change['newValue']))
 
     overview_lines.append("\n### End of Overview")
     return "\n".join(overview_lines)
@@ -359,12 +369,12 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "Audience:\n"
                 "Your target audience is the employees of Yarado who provide support to processes running into problems. Errors pop up in Slack, triggering the Yarado-supporter (the name of the AI model) to provide support. The output will also be sent in Slack.\n\n"
                 "Input:\n"
-                f"The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
+                "The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
                 "To be able to do the given objective, you will be provided with two main input sources (each delimited between triple '>' characters):\n"
-                f"1. The log data of the last {len(steps_log) - 1} steps taken during the execution of this process:\n>>>\n"
-                f"{steps_log}\n>>>\n"
+                "1. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
+                "{steps_log}\n>>>\n"
                 "2. The screenshot of the window that could be seen right before the error took place (see attached).\n"
-            )
+            ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1, steps_log=steps_log)
         },
         {
             "role": "user",
@@ -372,21 +382,21 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 {"type": "text", "text": (
                     "Complete the mrkdwn text within the JSON object below. Return the entire JSON object only.\n"
                     "```json\n"
-                    "{\n"
+                    "{{\n"
                     "  \"type\": \"section\",\n"
-                    "  \"text\": {\n"
+                    "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    f"    \"text\": \"*Objective description:* {point_of_failure}\\n\\n"
+                    "    \"text\": \"*Objective description:* {point_of_failure}\\n\\n"
                     "[Concluding paragraph: Very short summary of the process description and how it relates to what it was doing at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
-                    "  }\n"
-                    "}\n"
+                    "  }}\n"
+                    "}}\n"
                     "```"
-                )},
+                ).format(point_of_failure=point_of_failure)},
                 {"type": "image_url",
                  "image_url": {
-                     "url": f"data:image/jpeg;base64,{screenshot}"
+                     "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)
                  }
-                 }
+                }
             ]
         }
     ]
@@ -408,7 +418,8 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
             "content": (
                 "You are an AI assistant tasked with performing a cause analysis for an error in an automated workflow. "
                 "Your goal is to analyze the provided information and identify the underlying cause of the error, providing a detailed explanation. "
-                "You should look beyond the immediate step where the error occurred and consider earlier events that could have contributed to the failure.\n\n"
+                "You should look beyond the immediate step where the error occurred and consider earlier events that could have contributed to the failure. "
+                "Iteratively reason backwards through the steps and variable changes to find the root cause, even if it happened much earlier in the process.\n\n"
                 "Context:\n"
                 "You will help Yarado in delivering support to processes that run into an error. Yarado is an automation company in the Netherlands. "
                 "It automates business processes using its own in-house developed software platform called the 'Yarado Client'. The automated processes are developed with the Yarado Client and hosted on Azure Virtual Machines (on which the Yarado Client is installed). "
@@ -423,35 +434,52 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Audience:\n"
                 "Your target audience is the employees of Yarado who provide support to processes running into problems. Errors pop up in Slack, triggering the Yarado-supporter (the name of the AI model) to provide support. The output will also be sent in Slack.\n\n"
                 "Input Sources Description:\n"
-                f"The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
-                f"1. The log data of the last {len(preceding_steps_log) - 1} steps taken during the execution of this process: This provides a detailed account of the steps leading up to the error, helping to identify any anomalies or irregularities.\n"
+                "The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
+                "1. The log data of the last {steps} steps taken during the execution of this process: This provides a detailed account of the steps leading up to the error, helping to identify any anomalies or irregularities.\n"
                 "2. A screenshot of the window that could be seen right before the error took place: This offers visual context, showing the state of the application at the point of failure.\n"
-                "3. The objective error description generated by the AI: This gives a concise summary of the error, providing a clear starting point for the analysis. Note: This is given in json format. Note that this is information already given to the end user, so do not repeat this in your generated output.\n"
+                "3. The objective error description generated by the AI: This gives a concise summary of the error, providing a clear starting point for the analysis. Note: This is given in JSON format. Note that this is information already given to the end user, so do not repeat this in your generated output.\n"
                 "4. An overview of variable changes that occurred during the execution of the process: This helps identify any changes in the state of variables that could have contributed to the error.\n\n"
                 "Task Complexity:\n"
                 "Your task is to pinpoint why the error occurred and explain why you think so. It is important that you conduct a deep analysis, considering events that might have contributed to the error even if they happened earlier in the task run. The model should take its time to thoroughly analyze the data and look further than just the obvious."
-                f"\nInclude arguments and proof on why you think it is the reason why the automated process failed. Refer to the different sources of input. However, remember that someone giving support does not know that we created the variables overview, and that we only looked at the preceding {len(preceding_steps_log) - 1} steps. Therefore mention sources they do know (i.e. logfile, from which the variable overview and preceding steps are taken from, or the screenshot, in combination with the previously generated error description)\n\n"
+                "\nInclude arguments and proof on why you think it is the reason why the automated process failed. Refer to the different sources of input. However, remember that someone giving support does not know that we created the variables overview, and that we only looked at the preceding {steps} steps. Therefore mention sources they do know (i.e. logfile, from which the variable overview and preceding steps are taken from, or the screenshot, in combination with the previously generated error description).\n\n"
+                "Example:\n"
+                "In a previous analysis, the failure occurred during step 8.4 'Trigger error' because the process was unable to find the input file it was looking for. This was evident from earlier steps logged in the process. Specifically, in step 5.1, the directory 'C:\\Users\\ENE01\\OneDrive - 1Energielabel\\Registraties\\Juni 2024' was not found, which led to the variable '%input_file_exists%' being set to 'False' in step 6.1. Consequently, the condition in step 7.1 'Input file exists?' was unsatisfied, leading to the process displaying a message that the input file does not exist in step 7.4. Finally, in step 8.4 'Trigger error', the process attempted to proceed but failed due to the missing input file. The root cause, however, was identified as 'Sharepoint not syncing so the robot cannot find the file'.\n\n"
+                "Additional Examples:\n"
+                "These examples show a potential obvious cause versus an underlying deeper root cause. Always ensure you iteratively reason backwards to find the potential root cause."
+                "1. An error occurred at step 10.2 'Submit form' because the form could not be submitted. Looking back, step 7.3 'Fill form' showed a slow response time from the server, causing delays. Further investigation revealed that in step 5.1 'Load page', the page took unusually long to load, indicating a network issue. The root cause was identified as 'Network congestion causing delays in loading and form submission'.\n"
+                "2. A failure happened at step 12.5 'Validate data' due to incorrect data format. Tracing back, step 9.1 'Fetch data from API' logged the received data as incomplete. Checking earlier, step 6.4 'API request' indicated a timeout warning, suggesting intermittent connectivity issues. The root cause was identified as 'Unstable internet connection leading to incomplete data retrieval from API'.\n"
+                "3. An error occurred at step 9.3 'Save record' because the database was unresponsive. Looking back, step 6.2 'Connect to database' showed a connection delay. Further analysis revealed that in step 4.1 'Initialize database connection', a warning about high database load was logged. The root cause was identified as 'High database load causing delayed responses and unavailability'.\n"
+                "4. A failure happened at step 11.4 'Generate report' due to missing data fields. Tracing back, step 8.2 'Aggregate data' showed incomplete data sets. Investigating further, step 5.5 'Fetch data from source' indicated partial data retrieval. The root cause was identified as 'Data source server outage leading to incomplete data retrieval'.\n"
+                "5. An issue occurred at step 7.1 'Send email' because the email server rejected the request. Looking back, step 6.3 'Prepare email content' logged an unusually large attachment. Further analysis of step 4.4 'Fetch attachment' revealed that the file size exceeded the email server's limit. The root cause was identified as 'Attachment size exceeding email server limit causing email rejection'.\n\n"
                 "Output Format:\n"
                 "You should provide the cause analysis in the form of a JSON object. Return the entire JSON object only.\n"
                 "```json\n"
-                "{\n"
+                "{{\n"
                 "  \"type\": \"section\",\n"
-                "  \"text\": {\n"
+                "  \"text\": {{\n"
                 "    \"type\": \"mrkdwn\",\n"
                 "    \"text\": \"*Cause analysis:* [Detailed cause analysis text]\"\n"
-                "  }\n"
-                "}\n"
-                "```"
-                "Input sources data:"
+                "  }}\n"
+                "}}\n"
+                "```\n"
+                "Input sources data:\n"
                 "Objective error description in JSON format:\n"
-                f"{json.dumps(error_description)}\n\n"
+                "{error_description}\n\n"
                 "Point of failure description:\n"
-                f"{point_of_failure_descr}\n\n"
+                "{point_of_failure_descr}\n\n"
                 "Overview of variable changes:\n"
-                f"{variable_changes}\n\n"
-                f"Log data of the last {len(preceding_steps_log) - 1} steps in JSON format:\n"
-                f"{json.dumps(preceding_steps_log)}\n\n"
+                "{variable_changes}\n\n"
+                "Log data of the last {steps} steps in JSON format:\n"
+                "{preceding_steps_log}\n\n"
                 "Screenshot -> see attached image."
+            ).format(
+                customer_name=customer_name,
+                process_name=process_name,
+                steps=len(preceding_steps_log) - 1,
+                error_description=json.dumps(error_description),
+                point_of_failure_descr=point_of_failure_descr,
+                variable_changes=variable_changes,
+                preceding_steps_log=json.dumps(preceding_steps_log)
             )
         },
         {
@@ -460,20 +488,20 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 {"type": "text", "text": (
                     "Complete the mrkdwn text within the JSON object below by filling out the placeholder. Remember that it should form the answer to the question: 'Why did it go wrong? What led me to believe this is the case?'. Return the entire filled out JSON object only.\n"
                     "```json\n"
-                    "{\n"
+                    "{{\n"
                     "  \"type\": \"section\",\n"
-                    "  \"text\": {\n"
+                    "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Cause analysis:* [Detailed cause analysis based on all the provided information and your in-depth reasoning]\"\n"
-                    "  }\n"
-                    "}\n"
+                    "    \"text\": \"*Cause analysis:* [Detailed cause analysis based on all the provided information and your in-depth reasoning - Constrain yourself to iteratively reasoning backwards to find the root cause that led to this error.]\"\n"
+                    "  }}\n"
+                    "}}\n"
                     "```"
                 )},
                 {"type": "image_url",
                  "image_url": {
-                     "url": f"data:image/jpeg;base64,{screenshot}"
+                     "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)
                  }
-                 }
+                }
             ]
         }
     ]
@@ -481,18 +509,17 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
     response = client.chat.completions.create(
         model="generate_descriptions",
         messages=messages,
-        temperature=0.8,
+        temperature=0.9,
         response_format={"type": "json_object"}
     )
 
     return json.loads(response.choices[0].message.content)
 
 
-
 if __name__ == '__main__':
-    run_id = '621e93e0-4c92-4252-bcd0-aac1d05fd468'
-    client_name = 'Trivire'
-    task_name = 'EuroProces_main'
+    run_id = '3bf9bdf7-9a96-4113-9d2e-bc31285ca7f1'
+    client_name = '1energielabel'
+    task_name = 'record_processing_monday'
 
     client = initialize_client()
 
@@ -515,9 +542,11 @@ if __name__ == '__main__':
         process_description = process_row['ProcessDescription']
         preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
 
-    error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr, preceding_steps_log, image)
+    error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr,
+                                                   preceding_steps_log, image)
 
-    cause_analysis = perform_cause_analysis(client, client_name, task_name, preceding_steps_log, image, error_description, variable_changes)
+    cause_analysis = perform_cause_analysis(client, client_name, task_name, preceding_steps_log, image,
+                                            error_description, variable_changes)
 
     print(f'Error description:\n\n{error_description}\n\n')
 
