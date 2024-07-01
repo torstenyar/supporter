@@ -19,6 +19,9 @@ logging.basicConfig(level=logging.INFO)
 # In-memory dictionary to track reactions
 reaction_tracker = {}
 
+# Define the list of allowed channel IDs
+ALLOWED_CHANNELS = ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']
+
 def handle_event(data):
     event = data.get('event', {})
     logging.info("Received event: {}".format(event))
@@ -33,7 +36,13 @@ def handle_event(data):
         channel_id = event['item']['channel']
         message_timestamp = event['item']['ts']
 
-        logging.info("Handling reaction_added event for channel {} and timestamp {}".format(channel_id, message_timestamp))
+        # Check if the channel is allowed
+        if channel_id not in ALLOWED_CHANNELS:
+            logging.info("Reaction added in a non-allowed channel. Ignoring the event.")
+            return
+
+        logging.info(
+            "Handling reaction_added event for channel {} and timestamp {}".format(channel_id, message_timestamp))
 
         # Check if this reaction was already processed
         if reaction_tracker.get((channel_id, message_timestamp)):
