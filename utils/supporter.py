@@ -465,8 +465,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Input sources data:\n"
                 "Objective error description in JSON format:\n"
                 "{error_description}\n\n"
-                "Point of failure description:\n"
-                "{point_of_failure_descr}\n\n"
                 "Overview of variable changes:\n"
                 "{variable_changes}\n\n"
                 "Log data of the last {steps} steps in JSON format:\n"
@@ -477,7 +475,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 process_name=process_name,
                 steps=len(preceding_steps_log) - 1,
                 error_description=json.dumps(error_description),
-                point_of_failure_descr=point_of_failure_descr,
                 variable_changes=variable_changes,
                 preceding_steps_log=json.dumps(preceding_steps_log)
             )
