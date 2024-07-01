@@ -13,13 +13,11 @@ from utils.supporter import perform_cause_analysis
 from utils.supporter import extract_data_from_message
 from utils.supporter import generate_textual_overview
 
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # In-memory dictionary to track reactions
 reaction_tracker = {}
-
 
 def handle_event(data):
     event = data.get('event', {})
@@ -157,5 +155,3 @@ def handle_event(data):
         # Remove the processed mark
         if reaction_tracker.get((channel_id, message_timestamp)):
             del reaction_tracker[(channel_id, message_timestamp)]
-
-

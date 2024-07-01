@@ -6,11 +6,11 @@ import hashlib
 import os
 import base64
 
-# Uncomment below for local testing
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
+# # Uncomment below for local testing
+# from dotenv import load_dotenv
+#
+# # Load environment variables from .env file
+# load_dotenv()
 
 from PIL import Image
 from io import BytesIO
@@ -524,9 +524,9 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
 
 
 if __name__ == '__main__':
-    run_id = 'ba88468a-a82f-4931-ba2d-8d501e966fb8'
-    client_name = 'Numidia'
-    task_name = 'Post_Transport_Invoices-Finance-'
+    run_id = ''
+    client_name = ''
+    task_name = ''
 
     client = initialize_client()
 
