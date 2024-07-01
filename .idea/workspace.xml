@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Removed bugs">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Added cause analysis!">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -277,7 +276,23 @@
       <option name="project" value="LOCAL" />
       <updated>1719818849204</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Added cause analysis!">
+      <option name="closed" value="true" />
+      <created>1719846312837</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1719846312837</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Added cause analysis!">
+      <option name="closed" value="true" />
+      <created>1719848471359</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1719848471359</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -299,6 +314,7 @@
     <MESSAGE value="Added point of failure description" />
     <MESSAGE value="Generate error descriptions" />
     <MESSAGE value="Removed bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="Removed bugs" />
+    <MESSAGE value="Added cause analysis!" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added cause analysis!" />
   </component>
 </project>

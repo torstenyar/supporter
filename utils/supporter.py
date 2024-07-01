@@ -217,7 +217,7 @@ def determine_point_of_failure(log_file):
                 )
         else:
             nested_task_hierarchy = " -> ".join(
-                f"{task.split('\\')[-1]} (loop {loop})" for task, loop in nested_tasks_list)
+                "{} (loop {})".format(task.split('\\')[-1], loop) for task, loop in nested_tasks_list)
             if skipped_steps:
                 output_string = (
                     "The robot failed at step '{failed_step}' (which was part of loop row number {failed_loop}) following the successful completion of step '{last_completed_step}' (which was part of loop row number {last_completed_loop}), deliberately skipping some intermediate steps. "
