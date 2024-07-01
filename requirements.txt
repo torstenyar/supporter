@@ -1,6 +1,7 @@
 flask
 slack_sdk
 requests
+python-dotenv
 pillow
 azure-cosmosdb-table
 azure-storage-file-share
