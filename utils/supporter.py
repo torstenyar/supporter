@@ -325,20 +325,20 @@ def extract_relevant_variables(preceding_log_steps):
 def generate_textual_overview(log_data, preceding_log_steps):
     variable_changes = extract_variable_changes(log_data)
     relevant_variables = extract_relevant_variables(preceding_log_steps)
-
     overview_lines = ["### Variable Changes Overview", "", "#### Introduction:",
                       "This overview provides a detailed account of variable changes that occurred during the execution of the automated process. Each change is documented with the associated step ID and loop number.",
                       "", "#### Variable Changes:"]
-
     if not relevant_variables:
         overview_lines.append(
-            "No variables changed within the included window of {steps} preceding log steps.".format(steps=len(preceding_log_steps) - 1))
+            "No variables changed within the included window of {steps} preceding log steps.".format(
+                steps=len(preceding_log_steps) - 1))
     else:
-        filtered_variable_changes = {var: changes for var, changes in variable_changes.items() if var in relevant_variables}
-
+        filtered_variable_changes = {var: changes for var, changes in variable_changes.items() if
+                                     var in relevant_variables}
         if not filtered_variable_changes:
             overview_lines.append(
-                "No relevant variable changes found within the included window of {steps} preceding log steps.".format(steps=len(preceding_log_steps) - 1))
+                "No relevant variable changes found within the included window of {steps} preceding log steps.".format(
+                    steps=len(preceding_log_steps) - 1))
         else:
             for variable, changes in filtered_variable_changes.items():
                 initial_value = changes[0]['oldValue']
@@ -349,7 +349,6 @@ def generate_textual_overview(log_data, preceding_log_steps):
                     overview_lines.append(
                         "     - Step ID: {stepId} | Loop: {loop} | New Value: \"{newValue}\"".format(
                             stepId=change['stepId'], loop=change['loop'], newValue=change['newValue']))
-
     overview_lines.append("\n### End of Overview")
     return "\n".join(overview_lines)
 
@@ -382,22 +381,22 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "1. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
                 "{steps_log}\n>>>\n"
                 "2. The screenshot of the window that could be seen right before the error took place (see attached).\n"
-                "Output Format:\n"
-                "You should provide the cause analysis in the form of a JSON object. Return the entire JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs.\n"
-            ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1, steps_log=steps_log)
+                "You can subtly add layout/formatting to the output JSON (by including markdown formatted text or indicating emojis with enclosed ':' signs)."
+            ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1,
+                     steps_log=steps_log)
         },
         {
             "role": "user",
             "content": [
                 {"type": "text", "text": (
-                    "Complete the mrkdwn text within the JSON object below. Return the entire JSON object only.\n"
+                    "Complete the mrkdwn text within the JSON object below. Return the entire JSON object only. Ensure the 'point of failure' input text is fully transformed and interweaved into your objective description.\n"
                     "```json\n"
                     "{{\n"
                     "  \"type\": \"section\",\n"
                     "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Objective description:* [Rewrite the following part so that it flows naturally with the part thereafter. Clearly indicate in which task the error occured, at which loop, etc: {point_of_failure}]\\n\\n"
-                    "[Write a short concluding paragraph, i.e. Very short summary of the process description and how it relates to what it was doing at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
+                    "    \"text\": \"*Objective description:* [Rewrite the following part so that it flows naturally with the part thereafter. Clearly indicate in which task the error occurred, at which loop, etc. Input sentence 'point of failure': {point_of_failure}]\\n\\n"
+                    "[Write a short and objective concluding paragraph, summarizing the process description and how it relates to the error at this moment - by investigating log file and screenshot --> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
                     "  }}\n"
                     "}}\n"
                     "```"
@@ -406,7 +405,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                  "image_url": {
                      "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)
                  }
-                }
+                 }
             ]
         }
     ]
@@ -414,14 +413,14 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
     response = client.chat.completions.create(
         model="generate_descriptions",
         messages=messages,
-        temperature=0.3,
         response_format={"type": "json_object"}
     )
 
     return json.loads(response.choices[0].message.content)
 
 
-def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description, variable_changes):
+def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description,
+                           variable_changes):
     messages = [
         {
             "role": "system",
@@ -472,13 +471,13 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "  }}\n"
                 "}}\n"
                 "```\n"
-                "Input sources data:\n"
-                "Objective error description in JSON format:\n"
-                "{error_description}\n\n"
-                "Overview of variable changes:\n"
-                "{variable_changes}\n\n"
-                "Log data of the last {steps} steps in JSON format:\n"
-                "{preceding_steps_log}\n\n"
+                "Input sources data (between triple > characters):\n"
+                "Objective error description in JSON format:\n>>>"
+                "{error_description}\n>>>\n\n"
+                "Overview of variable changes:\n>>>"
+                "{variable_changes}\n>>>\n\n"
+                "Log data of the last {steps} steps in JSON format:\n>>>"
+                "{preceding_steps_log}\n>>>\n\n"
                 "Screenshot -> see attached image."
             ).format(
                 customer_name=customer_name,
@@ -508,7 +507,7 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                  "image_url": {
                      "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)
                  }
-                }
+                 }
             ]
         }
     ]
@@ -516,7 +515,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
     response = client.chat.completions.create(
         model="generate_descriptions",
         messages=messages,
-        temperature=1.0,
         response_format={"type": "json_object"}
     )
 
