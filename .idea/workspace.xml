@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Channel id check">
-      <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Tweaked the output format a bit!">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -339,7 +341,31 @@
       <option name="project" value="LOCAL" />
       <updated>1719860476081</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="readded generate textual description.">
+      <option name="closed" value="true" />
+      <created>1719862023808</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1719862023808</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Ensured more natural description">
+      <option name="closed" value="true" />
+      <created>1719862768597</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1719862768597</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Tweaked the output format a bit!">
+      <option name="closed" value="true" />
+      <created>1719863597949</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1719863597949</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -366,6 +392,9 @@
     <MESSAGE value="Comments" />
     <MESSAGE value="Comments and small adjustment for objective descriptions" />
     <MESSAGE value="Channel id check" />
-    <option name="LAST_COMMIT_MESSAGE" value="Channel id check" />
+    <MESSAGE value="readded generate textual description." />
+    <MESSAGE value="Ensured more natural description" />
+    <MESSAGE value="Tweaked the output format a bit!" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tweaked the output format a bit!" />
   </component>
 </project>

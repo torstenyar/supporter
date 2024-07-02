@@ -9,3 +9,6 @@ openai
 pandas
 pytz
 numpy
+opencensus-ext-azure
+opencensus-ext-flask
+azure-monitor-opentelemetry
