@@ -49,11 +49,11 @@ def handle_event(data):
         # Check if this reaction was already processed
         if reaction_tracker.get((channel_id, message_timestamp)):
             logging.info("This reaction has already been processed.")
-            error_message = (":confused: Warning: It looks like I've already processed this reaction. "
-                             "Currently, I am unable to handle repeated triggers for the same reaction. "
-                             "If you believe this is a mistake, please contact support (aka Torsten).")
-            send_message(channel_id, message_timestamp, error_message, as_text=True)
-            logging.error(error_message)
+            # error_message = (":confused: Warning: It looks like I've already processed this reaction. "
+            #                  "Currently, I am unable to handle repeated triggers for the same reaction. "
+            #                  "If you believe this is a mistake, please contact support (aka Torsten).")
+            # send_message(channel_id, message_timestamp, error_message, as_text=True)
+            # logging.error(error_message)
             return
 
         # Mark this reaction as processed
