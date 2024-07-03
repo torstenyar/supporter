@@ -5,8 +5,9 @@ import requests
 import hashlib
 import os
 import base64
+import time
 
-# Uncomment below for local testing
+# # Uncomment below for local testing
 # from dotenv import load_dotenv
 #
 # # Load environment variables from .env file
@@ -354,6 +355,32 @@ def generate_textual_overview(log_data, preceding_log_steps):
     return "\n".join(overview_lines)
 
 
+def retry_request(client, messages, model="generate_descriptions", max_retries=3, timeout=60):
+    for attempt in range(max_retries):
+        start_time = time.time()
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                response_format={"type": "json_object"}
+            )
+            elapsed_time = time.time() - start_time
+            if elapsed_time < timeout:
+                return json.loads(response.choices[0].message.content)
+        except Exception as e:
+            logging.error("Error during API request: {}".format(e))
+        logging.info(f"Retry attempt {attempt + 1} failed, retrying...")
+
+    error_message = {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": ":warning: Error: Azure OpenAI did not respond after multiple attempts. Please try again later."
+        }
+    }
+    return error_message
+
+
 def generate_error_description(client, customer_name, process_name, point_of_failure, steps_log, screenshot):
     messages = [
         {
@@ -421,13 +448,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
         }
     ]
 
-    response = client.chat.completions.create(
-        model="generate_descriptions",
-        messages=messages,
-        response_format={"type": "json_object"}
-    )
-
-    return json.loads(response.choices[0].message.content)
+    return retry_request(client, messages)
 
 
 def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description,
@@ -539,13 +560,13 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
         response_format={"type": "json_object"}
     )
 
-    return json.loads(response.choices[0].message.content)
+    return retry_request(client, messages)
 
 
 if __name__ == '__main__':
-    run_id = 'c40dcb55-6c7f-4834-b8ce-3c7bba066205'
-    client_name = 'Trubendorffer'
-    task_name = 'Credit Linked Beheer'
+    run_id = '6605784e-1259-4f1e-b72e-a8343b7fcdfa'
+    client_name = 'Circle8'
+    task_name = 'verlengingen_enexis'
 
     client = initialize_client()
 
@@ -556,6 +577,8 @@ if __name__ == '__main__':
 
     # Load the preceding steps
     preceding_steps_log = load_log_preceding_steps(log, failed_step_id, steps_to_include=10)
+
+
 
     variable_changes = generate_textual_overview(log, preceding_steps_log)
 

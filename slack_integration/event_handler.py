@@ -16,11 +16,12 @@ from utils.supporter import generate_textual_overview
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# In-memory dictionary to track reactions
+# In-memory dictionary to track reactions per user and message
 reaction_tracker = {}
 
 # Define the list of allowed channel IDs
 ALLOWED_CHANNELS = ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']
+
 
 def handle_event(data):
     global reaction_tracker  # Ensure we are using the global reaction_tracker
@@ -44,20 +45,17 @@ def handle_event(data):
             return
 
         logging.info(
-            "Handling reaction_added event for channel {} and timestamp {} and event_timestamp {}".format(channel_id, message_timestamp, event_timestamp))
+            "Handling reaction_added event for channel {} and timestamp {} and event_timestamp {}".format(channel_id,
+                                                                                                          message_timestamp,
+                                                                                                          event_timestamp))
 
-        # Check if this reaction was already processed
-        if reaction_tracker.get((channel_id, message_timestamp)):
-            logging.info("This reaction has already been processed.")
-            # error_message = (":confused: Warning: It looks like I've already processed this reaction. "
-            #                  "Currently, I am unable to handle repeated triggers for the same reaction. "
-            #                  "If you believe this is a mistake, please contact support (aka Torsten).")
-            # send_message(channel_id, message_timestamp, error_message, as_text=True)
-            # logging.error(error_message)
+        # Check if this reaction was already processed for the same user
+        if reaction_tracker.get((channel_id, message_timestamp, user_id)):
+            logging.info("This reaction has already been processed for this user.")
             return
 
-        # Mark this reaction as processed
-        reaction_tracker[(channel_id, message_timestamp)] = True
+        # Mark this reaction as processed for this user
+        reaction_tracker[(channel_id, message_timestamp, user_id)] = True
 
         message = fetch_message(channel_id, message_timestamp)
         if message:
@@ -80,6 +78,16 @@ def handle_event(data):
                 if not run_id:
                     error_message += "- Run ID could not be found."
 
+                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                logging.error(error_message)
+                return
+
+            if '.yrd' in task_name:
+                logging.info("This error originates from a user/manually triggered run.")
+                error_message = (
+                    ":confused: Warning: It looks like this error originates from a user/manual triggered run. "
+                    "Currently, I am unable to handle these types of error and am solely focused on cloud orchestrated runs. "
+                    "If you believe this is a mistake, please contact support (aka Torsten).")
                 send_message(channel_id, message_timestamp, error_message, as_text=True)
                 logging.error(error_message)
                 return
@@ -170,5 +178,5 @@ def handle_event(data):
             "Handling reaction_removed event for channel {} and timestamp {}".format(channel_id, message_timestamp))
 
         # Remove the processed mark
-        if reaction_tracker.get((channel_id, message_timestamp)):
-            del reaction_tracker[(channel_id, message_timestamp)]
+        if reaction_tracker.get((channel_id, message_timestamp, user_id)):
+            del reaction_tracker[(channel_id, message_timestamp, user_id)]

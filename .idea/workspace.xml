@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Minor tweaks to code, also added some additional error handling.">
-      <change afterPath="$PROJECT_DIR$/utils/shared_knowledge_db.py" afterDir="false" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="removed message">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/shared_knowledge_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/update_shared_knowledge_db.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -390,7 +391,23 @@
       <option name="project" value="LOCAL" />
       <updated>1720001145643</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Minor tweaks to code, also added some additional error handling.">
+      <option name="closed" value="true" />
+      <created>1720002630645</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1720002630645</updated>
+    </task>
+    <task id="LOCAL-00029" summary="removed message">
+      <option name="closed" value="true" />
+      <created>1720003295430</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1720003295430</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -422,6 +439,7 @@
     <MESSAGE value="Tweaked the output format a bit!" />
     <MESSAGE value="added logging capabilities" />
     <MESSAGE value="Minor tweaks to code, also added some additional error handling." />
-    <option name="LAST_COMMIT_MESSAGE" value="Minor tweaks to code, also added some additional error handling." />
+    <MESSAGE value="removed message" />
+    <option name="LAST_COMMIT_MESSAGE" value="removed message" />
   </component>
 </project>
