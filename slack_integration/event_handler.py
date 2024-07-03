@@ -22,6 +22,7 @@ reaction_tracker = {}
 # Define the list of allowed channel IDs
 ALLOWED_CHANNELS = ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']
 
+
 def handle_event(data):
     event = data.get('event', {})
     logging.info("Received event: {}".format(event))
@@ -47,6 +48,11 @@ def handle_event(data):
         # Check if this reaction was already processed
         if reaction_tracker.get((channel_id, message_timestamp)):
             logging.info("This reaction has already been processed.")
+            error_message = (":confused: Warning: It looks like I've already processed this reaction. "
+                             "Currently, I am unable to handle repeated triggers for the same reaction. "
+                             "If you believe this is a mistake, please contact support (aka Torsten).")
+            send_message(channel_id, message_timestamp, error_message, as_text=True)
+            logging.error(error_message)
             return
 
         # Mark this reaction as processed
@@ -159,7 +165,8 @@ def handle_event(data):
         channel_id = event['item']['channel']
         message_timestamp = event['item']['ts']
 
-        logging.info("Handling reaction_removed event for channel {} and timestamp {}".format(channel_id, message_timestamp))
+        logging.info(
+            "Handling reaction_removed event for channel {} and timestamp {}".format(channel_id, message_timestamp))
 
         # Remove the processed mark
         if reaction_tracker.get((channel_id, message_timestamp)):

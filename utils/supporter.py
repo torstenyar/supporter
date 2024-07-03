@@ -79,6 +79,7 @@ def load_log_file(run_id):
             log_json = json.loads(response.text)
             # Pretty print the JSON object
             pretty_log = json.dumps(log_json, indent=2, ensure_ascii=False)
+
             return pretty_log
         except json.JSONDecodeError:
             logging.error("Log file is not in JSON format.")
@@ -303,11 +304,11 @@ def extract_variable_changes(log_data):
                 if variable['name'] not in variable_changes:
                     variable_changes[variable['name']] = []
                 variable_changes[variable['name']].append({
-                    'timestamp': log['timestamp'],
-                    'oldValue': variable['oldValue'],
-                    'newValue': variable['newValue'],
-                    'stepId': log['stepId'],
-                    'loop': log['loop']
+                    'timestamp': log.get('timestamp', 'N/A'),  # Use .get method with a default value
+                    'oldValue': variable.get('oldValue', 'N/A'),  # Use .get method with a default value
+                    'newValue': variable.get('newValue', 'N/A'),  # Use .get method with a default value
+                    'stepId': log.get('stepId', 'N/A'),  # Use .get method with a default value
+                    'loop': log.get('loop', 'N/A')  # Use .get method with a default value
                 })
     return variable_changes
 
@@ -359,7 +360,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
             "role": "system",
             "content": (
                 "You are an AI assistant that objectively describes an occurred error in an automated workflow. "
-                "The objective description should be placed in a JSON object given by the user.\n\n"
+                "The objective description should be concise and placed in a JSON object given by the user.\n\n"
                 "Context:\n"
                 "You will help Yarado in delivering support to processes that run into an error. Yarado is an automation company in the Netherlands. "
                 "It automates business processes using its own in-house developed software platform called the 'Yarado Client'. The automated processes are developed with the Yarado Client and hosted on Azure Virtual Machines (on which the Yarado Client is installed). "
@@ -372,7 +373,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "- Changes in systems (e.g., missing elements, changed xpaths)\n"
                 "- Typical RPA and automation errors (e.g., UI automation issues, API failures)\n\n"
                 "Role:\n"
-                "You will be helping us in objectively describing the occurred error, thereby helping the employees giving support to this process.\n\n"
+                "You will be helping us in objectively describing the occurred error, thereby helping the employees giving support to this process.\n Your role does not include describing a cause for the error. Just remain objective and purely describe the error without giving the potential cause.\n"
                 "Audience:\n"
                 "Your target audience is the employees of Yarado who provide support to processes running into problems. Errors pop up in Slack, triggering the Yarado-supporter (the name of the AI model) to provide support. The output will also be sent in Slack.\n\n"
                 "Input:\n"
@@ -383,7 +384,15 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "2. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
                 "{steps_log}\n>>>\n"
                 "3. The screenshot of the window that could be seen right before the error took place (see attached).\n"
-                "You can subtly add layout/formatting to the output JSON (by including markdown formatted text or indicating emojis with enclosed ':' signs)."
+                "You can subtly add layout/formatting to the output JSON (by including markdown formatted text or indicating emojis with enclosed ':' signs).\n\n"
+                "Formatting Guidelines:\n"
+                "- Use *bold* for emphasis.\n"
+                "- Use _italic_ for italics.\n"
+                "- Use ~strikethrough~ for strikethrough.\n"
+                "- Insert new lines using \\n.\n"
+                "- Create inline code with `back-ticks`.\n"
+                "- Create multi-line code blocks with triple back-ticks (```).\n"
+                "- Escape &, <, and > characters using &amp;, &lt;, and &gt; respectively."
             ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1,
                      point_of_failure=point_of_failure, steps_log=steps_log)
         },
@@ -397,8 +406,8 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                     "  \"type\": \"section\",\n"
                     "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Objective description:* [very objective paragraph about the error under study]\\n\\n"
-                    "[Write a short and objective concluding paragraph while keeping in mind not to repeat earlier generated content. You should be trying to give a process description and how it relates to the error at this moment - by investigating log file and screenshot.--> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
+                    "    \"text\": \"*Objective description:* [very objective and concise paragraph about the error under study]\\n\\n"
+                    "[Write a short, concise, and objective concluding paragraph while keeping in mind not to repeat earlier generated content. You should be trying to give a process description and how it relates to the error at this moment - by investigating log file and screenshot.--> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
                     "  }}\n"
                     "}}\n"
                     "```"
@@ -453,7 +462,15 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Task Complexity:\n"
                 "Your task is to pinpoint why the error occurred and explain why you think so. It is important that you conduct a deep analysis, considering events that might have contributed to the error even if they happened earlier in the task run. The model should take its time to thoroughly analyze the data and look further than just the obvious."
                 "\nInclude arguments and proof on why you think it is the reason why the automated process failed. Refer to the different sources of input. However, remember that someone giving support does not know that we created the variables overview, and that we only looked at the preceding {steps} steps. Therefore mention sources they do know (i.e. logfile, from which the variable overview and preceding steps are taken from, or the screenshot, in combination with the previously generated error description).\n\n"
-                "Example:\n"
+                "Formatting Guidelines:\n"
+                "- Use *bold* for emphasis.\n"
+                "- Use _italic_ for italics.\n"
+                "- Use ~strikethrough~ for strikethrough.\n"
+                "- Insert new lines using \\n.\n"
+                "- Create inline code with `back-ticks`.\n"
+                "- Create multi-line code blocks with triple back-ticks (```).\n"
+                "- Escape &, <, and > characters using &amp;, &lt;, and &gt; respectively."
+                "\nExample:\n"
                 "In a previous analysis, the failure occurred during step 8.4 'Trigger error' because the process was unable to find the input file it was looking for. This was evident from earlier steps logged in the process. Specifically, in step 5.1, the directory 'C:\\Users\\ENE01\\OneDrive - 1Energielabel\\Registraties\\Juni 2024' was not found, which led to the variable '%input_file_exists%' being set to 'False' in step 6.1. Consequently, the condition in step 7.1 'Input file exists?' was unsatisfied, leading to the process displaying a message that the input file does not exist in step 7.4. Finally, in step 8.4 'Trigger error', the process attempted to proceed but failed due to the missing input file. The root cause, however, was identified as 'Sharepoint not syncing so the robot cannot find the file'.\n\n"
                 "Additional Examples:\n"
                 "These examples show a potential obvious cause versus an underlying deeper root cause. Always ensure you iteratively reason backwards to find the potential root cause.\n"
@@ -524,9 +541,9 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
 
 
 if __name__ == '__main__':
-    run_id = ''
-    client_name = ''
-    task_name = ''
+    run_id = '29ee50f0-850b-4fdc-9617-9c1956d053ad'
+    client_name = 'Trubendorffer'
+    task_name = 'VC_Verzekeringscheck-main2'
 
     client = initialize_client()
 
