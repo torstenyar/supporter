@@ -36,6 +36,7 @@ def handle_event(data):
 
         channel_id = event['item']['channel']
         message_timestamp = event['item']['ts']
+        event_timestamp = event['event_ts']
 
         # Check if the channel is allowed
         if channel_id not in ALLOWED_CHANNELS:
@@ -43,7 +44,7 @@ def handle_event(data):
             return
 
         logging.info(
-            "Handling reaction_added event for channel {} and timestamp {}".format(channel_id, message_timestamp))
+            "Handling reaction_added event for channel {} and timestamp {} and event_timestamp {}".format(channel_id, message_timestamp, event_timestamp))
 
         # Check if this reaction was already processed
         if reaction_tracker.get((channel_id, message_timestamp)):

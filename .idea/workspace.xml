@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Minor tweaks to code, also added some additional error handling.">
+      <change afterPath="$PROJECT_DIR$/utils/shared_knowledge_db.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
@@ -381,7 +382,15 @@
       <option name="project" value="LOCAL" />
       <updated>1720000340983</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="Minor tweaks to code, also added some additional error handling.">
+      <option name="closed" value="true" />
+      <created>1720001145643</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1720001145643</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

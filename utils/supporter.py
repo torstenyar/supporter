@@ -6,7 +6,7 @@ import hashlib
 import os
 import base64
 
-# # Uncomment below for local testing
+# Uncomment below for local testing
 # from dotenv import load_dotenv
 #
 # # Load environment variables from .env file
@@ -543,9 +543,9 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
 
 
 if __name__ == '__main__':
-    run_id = '29ee50f0-850b-4fdc-9617-9c1956d053ad'
+    run_id = 'c40dcb55-6c7f-4834-b8ce-3c7bba066205'
     client_name = 'Trubendorffer'
-    task_name = 'VC_Verzekeringscheck-main2'
+    task_name = 'Credit Linked Beheer'
 
     client = initialize_client()
 
