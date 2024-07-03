@@ -22,8 +22,8 @@ reaction_tracker = {}
 # Define the list of allowed channel IDs
 ALLOWED_CHANNELS = ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']
 
-
 def handle_event(data):
+    global reaction_tracker  # Ensure we are using the global reaction_tracker
     event = data.get('event', {})
     logging.info("Received event: {}".format(event))
     az_client = initialize_client()

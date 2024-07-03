@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="added logging capabilities">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Minor tweaks to code, also added some additional error handling.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
     </list>
@@ -374,7 +373,15 @@
       <option name="project" value="LOCAL" />
       <updated>1719908861008</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Minor tweaks to code, also added some additional error handling.">
+      <option name="closed" value="true" />
+      <created>1720000340983</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1720000340983</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -405,6 +412,7 @@
     <MESSAGE value="Ensured more natural description" />
     <MESSAGE value="Tweaked the output format a bit!" />
     <MESSAGE value="added logging capabilities" />
-    <option name="LAST_COMMIT_MESSAGE" value="added logging capabilities" />
+    <MESSAGE value="Minor tweaks to code, also added some additional error handling." />
+    <option name="LAST_COMMIT_MESSAGE" value="Minor tweaks to code, also added some additional error handling." />
   </component>
 </project>
