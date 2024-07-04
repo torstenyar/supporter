@@ -6,12 +6,13 @@ import hashlib
 import os
 import base64
 import time
+from collections import defaultdict
 
-# # Uncomment below for local testing
-# from dotenv import load_dotenv
-#
-# # Load environment variables from .env file
-# load_dotenv()
+# Uncomment below for local testing
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from PIL import Image
 from io import BytesIO
@@ -298,28 +299,32 @@ def load_descr_preceding_steps(preceding_steps, described_steps):
 
 def extract_variable_changes(log_data):
     log_entries = json.loads(log_data)
-    variable_changes = {}
+    variable_changes = defaultdict(list)
     for log in log_entries:
         if 'changedVariables' in log and log['changedVariables']:
+            task = log.get('task', 'N/A')
+            if task != 'N/A':
+                task = task.split('\\')[-1]
             for variable in log['changedVariables']:
-                if variable['name'] not in variable_changes:
-                    variable_changes[variable['name']] = []
                 variable_changes[variable['name']].append({
                     'timestamp': log.get('timestamp', 'N/A'),  # Use .get method with a default value
                     'oldValue': variable.get('oldValue', 'N/A'),  # Use .get method with a default value
                     'newValue': variable.get('newValue', 'N/A'),  # Use .get method with a default value
                     'stepId': log.get('stepId', 'N/A'),  # Use .get method with a default value
-                    'loop': log.get('loop', 'N/A')  # Use .get method with a default value
+                    'loop': log.get('loop', 'N/A'),  # Use .get method with a default value
+                    'task': task
                 })
-    return variable_changes
+    return dict(variable_changes)
 
 
 def extract_relevant_variables(preceding_log_steps):
     relevant_variables = set()
+    variable_pattern = re.compile(r'%[^%]+%')
+
     for step in preceding_log_steps:
         for key, value in step.items():
             if isinstance(value, str) and '%' in value:
-                variables = [v for v in value.split() if v.startswith('%') and v.endswith('%')]
+                variables = variable_pattern.findall(value)
                 relevant_variables.update(variables)
     return relevant_variables
 
@@ -327,6 +332,7 @@ def extract_relevant_variables(preceding_log_steps):
 def generate_textual_overview(log_data, preceding_log_steps):
     variable_changes = extract_variable_changes(log_data)
     relevant_variables = extract_relevant_variables(preceding_log_steps)
+
     overview_lines = ["### Variable Changes Overview", "", "#### Introduction:",
                       "This overview provides a detailed account of variable changes that occurred during the execution of the automated process. Each change is documented with the associated step ID and loop number.",
                       "", "#### Variable Changes:"]
@@ -343,14 +349,16 @@ def generate_textual_overview(log_data, preceding_log_steps):
                     steps=len(preceding_log_steps) - 1))
         else:
             for variable, changes in filtered_variable_changes.items():
-                initial_value = changes[0]['oldValue']
-                overview_lines.append("\n1. **Variable: {variable}**".format(variable=variable))
-                overview_lines.append("   - Initial Value: \"{initial_value}\"".format(initial_value=initial_value))
-                overview_lines.append("   - Changes:")
+                overview_lines.append("* {}:".format(variable))
                 for change in changes:
                     overview_lines.append(
-                        "     - Step ID: {stepId} | Loop: {loop} | New Value: \"{newValue}\"".format(
-                            stepId=change['stepId'], loop=change['loop'], newValue=change['newValue']))
+                        "  Old Value: {oldValue}, New Value: {newValue}, Step ID: {stepId}, Loop: {loop}, Task: {task}".format(
+                            oldValue=change['oldValue'],
+                            newValue=change['newValue'],
+                            stepId=change['stepId'],
+                            loop=change['loop'],
+                            task=change['task']
+                        ))
     overview_lines.append("\n### End of Overview")
     return "\n".join(overview_lines)
 
@@ -362,7 +370,8 @@ def retry_request(client, messages, model="generate_descriptions", max_retries=3
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
+                max_tokens=4096
             )
             elapsed_time = time.time() - start_time
             if elapsed_time < timeout:
@@ -451,8 +460,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
     return retry_request(client, messages)
 
 
-def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description,
-                           variable_changes):
+def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description):
     messages = [
         {
             "role": "system",
@@ -480,7 +488,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "1. The log data of the last {steps} steps taken during the execution of this process: This provides a detailed account of the steps leading up to the error, helping to identify any anomalies or irregularities.\n"
                 "2. A screenshot of the window that could be seen right before the error took place: This offers visual context, showing the state of the application at the point of failure.\n"
                 "3. The objective error description generated by the AI: This gives a concise summary of the error, providing a clear starting point for the analysis. Note: This is given in JSON format. Note that this is information already given to the end user, so do not repeat this in your generated output.\n"
-                "4. An overview of variable changes that occurred during the execution of the process: This helps identify any changes in the state of variables that could have contributed to the error.\n\n"
                 "Task Complexity:\n"
                 "Your task is to pinpoint why the error occurred and explain why you think so. It is important that you conduct a deep analysis, considering events that might have contributed to the error even if they happened earlier in the task run. The model should take its time to thoroughly analyze the data and look further than just the obvious."
                 "\nInclude arguments and proof on why you think it is the reason why the automated process failed. Refer to the different sources of input. However, remember that someone giving support does not know that we created the variables overview, and that we only looked at the preceding {steps} steps. Therefore mention sources they do know (i.e. logfile, from which the variable overview and preceding steps are taken from, or the screenshot, in combination with the previously generated error description).\n\n"
@@ -516,8 +523,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Input sources data (between triple > characters):\n"
                 "Objective error description in JSON format:\n>>>"
                 "{error_description}\n>>>\n\n"
-                "Overview of variable changes:\n>>>"
-                "{variable_changes}\n>>>\n\n"
                 "Log data of the last {steps} steps in JSON format:\n>>>"
                 "{preceding_steps_log}\n>>>\n\n"
                 "Screenshot -> see attached image."
@@ -526,7 +531,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 process_name=process_name,
                 steps=len(preceding_steps_log) - 1,
                 error_description=json.dumps(error_description),
-                variable_changes=variable_changes,
                 preceding_steps_log=json.dumps(preceding_steps_log)
             )
         },
@@ -554,19 +558,13 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
         }
     ]
 
-    response = client.chat.completions.create(
-        model="generate_descriptions",
-        messages=messages,
-        response_format={"type": "json_object"}
-    )
-
     return retry_request(client, messages)
 
 
 if __name__ == '__main__':
-    run_id = '6605784e-1259-4f1e-b72e-a8343b7fcdfa'
-    client_name = 'Circle8'
-    task_name = 'verlengingen_enexis'
+    run_id = 'c40dcb55-6c7f-4834-b8ce-3c7bba066205'
+    client_name = 'Credit Linked Beheer'
+    task_name = 'CDD-Check_main'
 
     client = initialize_client()
 
@@ -578,9 +576,9 @@ if __name__ == '__main__':
     # Load the preceding steps
     preceding_steps_log = load_log_preceding_steps(log, failed_step_id, steps_to_include=10)
 
+    # print(json.dumps(preceding_steps_log, indent=2))
 
-
-    variable_changes = generate_textual_overview(log, preceding_steps_log)
+    # variable_changes = generate_textual_overview(log, preceding_steps_log)
 
     process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
 
@@ -595,7 +593,7 @@ if __name__ == '__main__':
                                                    preceding_steps_log, image)
 
     cause_analysis = perform_cause_analysis(client, client_name, task_name, preceding_steps_log, image,
-                                            error_description, variable_changes)
+                                            error_description)
 
     print(f'Error description:\n\n{error_description}\n\n')
 

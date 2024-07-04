@@ -125,7 +125,7 @@ def handle_event(data):
             preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10)
 
             # Create changes of variables overview
-            variable_changes = generate_textual_overview(log_file, preceding_steps_log)
+            #variable_changes = generate_textual_overview(log_file, preceding_steps_log)
 
             process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
 
@@ -140,7 +140,7 @@ def handle_event(data):
                                                            preceding_steps_log, screenshot)
 
             cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log, screenshot,
-                                                    error_description, variable_changes)
+                                                    error_description)
 
             # Create the response blocks
             blocks_analysis = [
