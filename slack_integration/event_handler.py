@@ -29,7 +29,9 @@ def handle_event(data):
     logging.info("Received event: {}".format(event))
     az_client = initialize_client()
 
-    if event.get('type') == 'reaction_added' and event.get('reaction') == 'yara-sup-1':
+    valid_reactions = ['yara-sup-1', 'yara-sup-backup']
+
+    if event.get('type') == 'reaction_added' and event.get('reaction') in valid_reactions:
         user_id = event.get('user')
         if user_id == bot_user_id:
             logging.info("Skipping event triggered by the bot itself.")
@@ -165,7 +167,7 @@ def handle_event(data):
             # Send the detailed response message using blocks
             send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
 
-    elif event.get('type') == 'reaction_removed' and event.get('reaction') == 'yara-sup-1':
+    elif event.get('type') == 'reaction_removed' and event.get('reaction') in valid_reactions:
         user_id = event.get('user')
         if user_id == bot_user_id:
             logging.info("Skipping event triggered by the bot itself.")
@@ -180,3 +182,4 @@ def handle_event(data):
         # Remove the processed mark
         if reaction_tracker.get((channel_id, message_timestamp, user_id)):
             del reaction_tracker[(channel_id, message_timestamp, user_id)]
+

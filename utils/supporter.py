@@ -371,6 +371,7 @@ def retry_request(client, messages, model="generate_descriptions", max_retries=3
                 model=model,
                 messages=messages,
                 response_format={"type": "json_object"},
+                temperature=0.4,
                 max_tokens=4096
             )
             elapsed_time = time.time() - start_time
@@ -438,14 +439,13 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                     "3. Expected Behavior: Briefly mention what should have happened at this point in the process.\n"
                     "4. Affected Components: List any specific components or systems involved in the error.\n"
                     "5. Error Context: Provide any relevant context from the steps leading up to the error.\n\n"
-                    "Complete the mrkdwn text within the single JSON object below. Return the entire - single - JSON object only. Ensure to start with a (short) objective description of the error under investigation, clearly describing at which step, which loop, and in which task the error occured (also indicate if it is in the first loop). But do not just repeat the input sentence. Subtly add layout/formatting to the single output JSON object by including markdown formatted text or indicating emojis with enclosed ':' signs.\n"
+                    "Complete the mrkdwn text within the single JSON object below. Return the entire - single - JSON object only. Ensure to start with a (short) objective description of the error under investigation, clearly describing at which step, which loop, and in which task the error occured (also indicate if it is in the first loop). But do not just repeat the input sentence. Subtly add layout/formatting to the single output JSON object by including markdown formatted text or indicating emojis with enclosed ':' signs (remember the formatting guidelines provided earlier). Strictly keep to the JSON scheme below.\n"
                     "```json\n"
                     "{{\n"
                     "  \"type\": \"section\",\n"
                     "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Objective description:* [very objective and concise paragraph about the error under study]\\n\\n"
-                    "[Write a short, concise, and objective concluding paragraph while keeping in mind not to repeat earlier generated content. You should be trying to give a process description and how it relates to the error at this moment - by investigating log file and screenshot.--> Example concluding paragraph: The automated process was in the middle of processing invoice submissions. It successfully navigated to the invoice processing page and attempted to click on the 'Submit' button. However, the process failed at step 3.2 when the button became unresponsive. The screenshot shows the 'Submit' button highlighted but unclickable on the invoice processing page.]\"\n"
+                    "    \"text\": \"*Objective description:* [placeholder for your generated content]\\n\\n"
                     "  }}\n"
                     "}}\n"
                     "```"
@@ -541,13 +541,13 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                     "2. Causal Chain: Describe the sequence of events leading to the error.\n"
                     "3. System Interaction Analysis: Explain how different components of the system may have contributed to the error.\n"
                     "4. Probability Assessment: Evaluate the likelihood of different potential causes.\n\n"
-                    "Complete the mrkdwn text within the single JSON object below by filling out the placeholder. Return only the entire filled out - single - JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs.\n"
+                    "Complete the mrkdwn text within the single JSON object below by filling out the placeholder. Return only the entire filled out - single - JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs (remember the formatting guidelines provided earlier). Strictly keep to the JSON scheme below.\n"
                     "```json\n"
                     "{{\n"
                     "  \"type\": \"section\",\n"
                     "  \"text\": {{\n"
                     "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Cause analysis:* [Detailed cause analysis based on all the provided information and your in-depth reasoning]\"\n"
+                    "    \"text\": \"*Cause analysis:* [Placeholder for your detailed cause analysis based on all the provided information and your in-depth reasoning]\"\n"
                     "  }}\n"
                     "}}\n"
                     "```"
