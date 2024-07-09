@@ -16,7 +16,7 @@ from utils.supporter import generate_textual_overview
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# In-memory dictionary to track reactions per user and message
+# In-memory dictionary to track reactions per user, message, and emoji
 reaction_tracker = {}
 
 # Define the list of allowed channel IDs
@@ -33,6 +33,7 @@ def handle_event(data):
 
     if event.get('type') == 'reaction_added' and event.get('reaction') in valid_reactions:
         user_id = event.get('user')
+        reaction = event.get('reaction')
         if user_id == bot_user_id:
             logging.info("Skipping event triggered by the bot itself.")
             return
@@ -51,13 +52,13 @@ def handle_event(data):
                                                                                                           message_timestamp,
                                                                                                           event_timestamp))
 
-        # Check if this reaction was already processed for the same user
-        if reaction_tracker.get((channel_id, message_timestamp, user_id)):
-            logging.info("This reaction has already been processed for this user.")
+        # Check if this reaction was already processed for the same user and emoji
+        if reaction_tracker.get((channel_id, message_timestamp, user_id, reaction)):
+            logging.info("This reaction has already been processed for this user and emoji.")
             return
 
-        # Mark this reaction as processed for this user
-        reaction_tracker[(channel_id, message_timestamp, user_id)] = True
+        # Mark this reaction as processed for this user and emoji
+        reaction_tracker[(channel_id, message_timestamp, user_id, reaction)] = True
 
         message = fetch_message(channel_id, message_timestamp)
         if message:
@@ -126,9 +127,6 @@ def handle_event(data):
             # Load the preceding steps
             preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10)
 
-            # Create changes of variables overview
-            #variable_changes = generate_textual_overview(log_file, preceding_steps_log)
-
             process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
 
             process_description = None
@@ -138,37 +136,51 @@ def handle_event(data):
                 process_description = process_row['ProcessDescription']
                 preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
 
-            error_description = generate_error_description(az_client, client_name, task_name, point_of_failure_descr,
-                                                           preceding_steps_log, screenshot)
+            retry_count = 0
+            max_retries = 3
+            while retry_count < max_retries:
+                try:
+                    # Generate error description and cause analysis
+                    error_description = generate_error_description(az_client, client_name, task_name, point_of_failure_descr,
+                                                                   preceding_steps_log, screenshot)
+                    cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log, screenshot,
+                                                            error_description)
 
-            cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log, screenshot,
-                                                    error_description)
+                    # Create the response blocks
+                    blocks_analysis = [
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "*:memo: _What went wrong?_*"
+                            }
+                        },
+                        error_description,
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "*:mag: _Why did it go wrong? What led me to believe this is the case?_*"
+                            }
+                        },
+                        cause_analysis
+                    ]
 
-            # Create the response blocks
-            blocks_analysis = [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*:memo: _What went wrong?_*"
-                    }
-                },
-                error_description,
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*:mag: _Why did it go wrong? What led me to believe this is the case?_*"
-                    }
-                },
-                cause_analysis
-            ]
+                    # Send the detailed response message using blocks
+                    send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
+                    break  # Exit loop if message is sent successfully
 
-            # Send the detailed response message using blocks
-            send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
+                except Exception as e:
+                    logging.error("Failed to send message: {}. Retry {}/{}".format(e, retry_count + 1, max_retries))
+                    retry_count += 1
+                    if retry_count == max_retries:
+                        error_message = ":warning: Error: Unable to send the analysis message after multiple attempts. Please try again later."
+                        send_message(channel_id, message_timestamp, error_message, as_text=True)
+                        return
 
     elif event.get('type') == 'reaction_removed' and event.get('reaction') in valid_reactions:
         user_id = event.get('user')
+        reaction = event.get('reaction')
         if user_id == bot_user_id:
             logging.info("Skipping event triggered by the bot itself.")
             return
@@ -180,6 +192,5 @@ def handle_event(data):
             "Handling reaction_removed event for channel {} and timestamp {}".format(channel_id, message_timestamp))
 
         # Remove the processed mark
-        if reaction_tracker.get((channel_id, message_timestamp, user_id)):
-            del reaction_tracker[(channel_id, message_timestamp, user_id)]
-
+        if reaction_tracker.get((channel_id, message_timestamp, user_id, reaction)):
+            del reaction_tracker[(channel_id, message_timestamp, user_id, reaction)]
