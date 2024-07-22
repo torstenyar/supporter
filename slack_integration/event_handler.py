@@ -1,4 +1,5 @@
 import logging
+import json
 from .message_handler import fetch_message, send_message
 from .slack_client import bot_user_id
 from utils.azure_data_loader import load_task_data
@@ -132,13 +133,15 @@ def handle_event(data):
             while retry_count < max_retries:
                 try:
                     # Generate error description and cause analysis
-                    error_description = generate_error_description(az_client, client_name, task_name, point_of_failure_descr,
+                    error_description = generate_error_description(az_client, client_name, task_name,
+                                                                   point_of_failure_descr,
                                                                    preceding_steps_log, screenshot)
-                    cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log, screenshot,
+                    cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log,
+                                                            screenshot,
                                                             error_description)
 
                     # Create the response blocks
-                    blocks_analysis = [
+                    blocks_analysis = json.dumps([
                         {
                             "type": "section",
                             "text": {
@@ -146,7 +149,7 @@ def handle_event(data):
                                 "text": "*:memo: _What went wrong?_*"
                             }
                         },
-                        error_description,
+                        json.loads(error_description),
                         {
                             "type": "section",
                             "text": {
@@ -154,8 +157,8 @@ def handle_event(data):
                                 "text": "*:mag: _Why did it go wrong? What led me to believe this is the case?_*"
                             }
                         },
-                        cause_analysis
-                    ]
+                        json.loads(cause_analysis)
+                    ])
 
                     # Send the detailed response message using blocks
                     send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
