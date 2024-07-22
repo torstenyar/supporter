@@ -7,6 +7,7 @@ import os
 import base64
 import time
 from collections import defaultdict
+import random
 
 # Uncomment below for local testing
 from dotenv import load_dotenv
@@ -363,33 +364,47 @@ def generate_textual_overview(log_data, preceding_log_steps):
     return "\n".join(overview_lines)
 
 
-def retry_request(client, messages, model="generate_descriptions", max_retries=3, timeout=60):
-    for attempt in range(max_retries):
-        start_time = time.time()
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                response_format={"type": "json_object"},
-                temperature=0.2,
-                top_p=0.3,
-                max_tokens=4096
-            )
-            elapsed_time = time.time() - start_time
-            if elapsed_time < timeout:
-                return json.loads(response.choices[0].message.content)
-        except Exception as e:
-            logging.error("Error during API request: {}".format(e))
-        logging.info(f"Retry attempt {attempt + 1} failed, retrying...")
-
-    error_message = {
+def create_json_response(content):
+    return json.dumps({
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": ":warning: Error: Azure OpenAI did not respond after multiple attempts. Please try again later."
+            "text": content
         }
-    }
-    return error_message
+    })
+
+
+def retry_request(client, messages, model="generate_descriptions", max_retries=5, initial_timeout=1, max_timeout=60,
+                  max_tokens=4096):
+    for attempt in range(max_retries):
+        try:
+            print(f" Attempt {attempt + 1} of {max_retries}...")
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=0.2,
+                top_p=0.7,
+                max_tokens=max_tokens,
+                frequency_penalty=0.5,
+                presence_penalty=0.0,
+                timeout=30
+            )
+            print(f" Request successful on attempt {attempt + 1}")
+            return create_json_response(response.choices[0].message.content)
+        except Exception as e:
+            if attempt == max_retries - 1:
+                print(f"Max retries reached. Last error: {e}")
+                logging.error(f"Max retries reached. Last error: {e}")
+                error_message = f":warning: Error: Azure OpenAI did not respond successfully after multiple attempts. \n\nLast error: \n```{json.dumps(e, indent=2)}```\n\nPlease try again later."
+                return create_json_response(error_message)
+
+            wait_time = min(initial_timeout * (2 ** attempt) + random.uniform(0, 1), max_timeout)
+            print(f"Attempt {attempt + 1} failed. Retrying in {wait_time:.2f} seconds. Error: {e}")
+            logging.warning(f"Attempt {attempt + 1} failed. Retrying in {wait_time:.2f} seconds. Error: {e}")
+            time.sleep(wait_time)
+
+    # This line should never be reached due to the return statement in the loop, but it's here for completeness
+    return create_json_response(":warning: Unexpected error occurred during API request.")
 
 
 def generate_error_description(client, customer_name, process_name, point_of_failure, steps_log, screenshot):
@@ -397,64 +412,54 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
         {
             "role": "system",
             "content": (
-                "You are an AI assistant that objectively describes an occurred error in an automated workflow. "
-                "The objective description should be concise and placed in a JSON object given by the user.\n\n"
+                "You are an AI assistant designed to help Yarado support staff by objectively describing errors in automated workflows. "
+                "Your descriptions will be used directly in Slack messages to inform Yarado employees about process failures.\n\n"
                 "Context:\n"
-                "You will help Yarado in delivering support to processes that run into an error. Yarado is an automation company in the Netherlands. "
-                "It automates business processes using its own in-house developed software platform called the 'Yarado Client'. The automated processes are developed with the Yarado Client and hosted on Azure Virtual Machines (on which the Yarado Client is installed). "
-                "The automated runs happen in the cloud/background, so no human is watching the screen when the automated process is running.\n"
-                "-> The JSON code you will encounter stems from the logging of an automated process we developed with our own in-house developed application called the Yarado Client. Our normal way of working is that we manage an Azure VM for our client (in this case {customer_name}), we install the Yarado Client on this VM, and then we automate their business processes using their user accounts (as if we are a new colleague).\n"
-                "-> Step Flow: Yarado steps are identified by 'coords' (x.y), showing task progression from 1.1 down rows. Steps may shift across columns under conditions like unmet criteria. The task files may also include coordinates such as 'x.y.i.j'. These stem from subtask steps, where x.y still indicates the maintask step coordinates, but i.j indicate the subtask coordinate.\n\n"
-                "Sometimes, these processes run into a problem/error. Because we are not actually watching what is happening on the screen, it takes a lot of time to figure out what happened."
-                "Role:\n"
-                "You will be helping us in objectively describing the occurred error, thereby helping the employees giving support to this process.\n Your role does not include describing a cause for the error. Just remain objective and purely describe the error without giving the potential cause.\n"
-                "Audience:\n"
-                "Your target audience is the employees of Yarado who provide support to processes running into problems. Errors pop up in Slack, triggering the Yarado-supporter (the name of the AI model) to provide support. The output will also be sent in Slack.\n\n"
-                "Input:\n"
-                "The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
-                "To be able to do the given objective, you will be provided with three main input sources (each delimited between triple '>' characters):\n"
-                "1. The description of the point of failure of the run under investigation:\n>>>\n"
-                "{point_of_failure}\n>>>\n"
-                "2. The log data of the last {steps} steps taken during the execution of this process:\n>>>\n"
-                "{steps_log}\n>>>\n"
-                "3. The screenshot of the window that could be seen right before the error took place (see attached).\n"
-                "You can subtly add layout/formatting to the output JSON (by following the formatting guidelins given by the Slack documentation pages which are summarized below, but also indicating emojis with enclosed ':' signs).\n\n"
-                "Formatting Guidelines:\n"
-                "- Use *bold* for emphasis.\n"
-                "- Use _italic_ for italics.\n"
-                "- Use ~strikethrough~ for strikethrough.\n"
-                "- Insert new lines using \\n.\n"
-                "- Create inline code with `back-ticks`.\n"
-                "- Create multi-line code blocks with triple back-ticks (```).\n"
-                "- Escape &, <, and > characters using &amp;, &lt;, and &gt; respectively."
-            ).format(customer_name=customer_name, process_name=process_name, steps=len(steps_log) - 1,
-                     point_of_failure=point_of_failure, steps_log=steps_log)
+                "Yarado is an automation company that uses its proprietary 'Yarado Client' software to automate business processes. "
+                "These processes run on Azure Virtual Machines without human supervision. "
+                "The process '{process_name}' was developed for the customer '{customer_name}'.\n\n"
+                "Your task:\n"
+                "Provide a clear, concise, and objective description of the error that occurred. Focus ONLY on observable facts and DO NOT speculate about causes or offer any analysis. "
+                "Your role is strictly to describe what happened, not why it happened. The cause analysis will be performed separately.\n\n"
+                "Important:\n"
+                "- DO NOT attempt to explain why the error occurred or what might have caused it.\n"
+                "- Stick to describing the observable symptoms and effects of the error.\n"
+                "- If you're tempted to use phrases like 'because', 'due to', or 'caused by', stop and rephrase without speculation.\n\n"
+                "Input sources:\n"
+                "1. Point of failure description:\n>>>\n{point_of_failure}\n>>>\n"
+                "2. Log data of the last {steps} steps:\n>>>\n{steps_log}\n>>>\n"
+                "3. Screenshot of the window just before the error (attached to this message).\n\n"
+                "Formatting Guidelines for Slack messages:\n"
+                "- Use *asterisks* for bold text\n"
+                "- Use _underscores_ for italic text\n"
+                "- Use ~tildes~ for strikethrough text\n"
+                "- Use `backticks` for inline code\n"
+                "- Use ```triple backticks``` for code blocks\n"
+                "- Use > for blockquotes\n"
+                "- Use :emoji_name: for emojis\n"
+                "- Use \\n for line breaks\n\n"
+                "Remember, these are Slack-specific formatting rules, not standard markdown."
+            ).format(
+                customer_name=customer_name,
+                process_name=process_name,
+                steps=len(steps_log) - 1,
+                point_of_failure=point_of_failure,
+                steps_log=json.dumps(steps_log, indent=2)
+            )
         },
         {
             "role": "user",
             "content": [
                 {"type": "text", "text": (
                     "Provide a structured description of the error, including:\n"
-                    "1. Error Location: Specify the exact step, loop, and task where the error occurred.\n"
-                    "2. Observed Behavior: Describe what happened, focusing on observable facts.\n"
-                    "3. Expected Behavior: Briefly mention what should have happened at this point in the process.\n"
-                    "4. Affected Components: List any specific components or systems involved in the error.\n"
-                    "5. Error Context: Provide any relevant context from the steps leading up to the error.\n\n"
-                    "Complete the mrkdwn text within the single JSON object below. Return the entire - single - JSON object only. Ensure to start with a (short) objective description of the error under investigation, clearly describing at which step, which loop, and in which task the error occured (also indicate if it is in the first loop). But do not just repeat the input sentence. Subtly add layout/formatting to the single output JSON object by including markdown formatted text or indicating emojis with enclosed ':' signs (remember the formatting guidelines provided earlier). Strictly keep to the JSON scheme below.\n\nDO NOT STOP GENERATING UNTILL YOU FINSIHED THE WHOLE DESCRIPTION -> The whole description should be placed in the same key/value pair, so do not create new key or value pairs yourself."
-                    "```json\n"
-                    "{{\n"
-                    "  \"type\": \"section\",\n"
-                    "  \"text\": {{\n"
-                    "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Objective description:* [placeholder for your generated content]\\n\\n"
-                    "  }}\n"
-                    "}}\n"
-                    "```"
-                    "# Objective Description of required JSON scheme:\n"
-                    "# - An outer object with a key \"type\"\n"
-                    "# - A nested object \"text\" with:\n"
-                    "#   - A key \"type\"\n"
-                    "#   - A key \"text\"\n"
+                    "1. *Error Location*: Specify the exact step, loop, and task where the error occurred. Include the step coordinates (e.g., 5.2) and indicate if it's in the first loop.\n"
+                    "2. *Observed Behavior*: Describe what happened, focusing ONLY on observable facts from the log and screenshot. DO NOT speculate on causes.\n"
+                    "3. *Expected Behavior*: Briefly mention what should have happened at this point in the process, without discussing why it didn't happen.\n"
+                    "4. *Affected Components*: List any specific components or systems involved in the error, without analyzing their role in causing the error.\n"
+                    "5. *Error Context*: Provide relevant context from the steps leading up to the error, describing ONLY what occurred, not why.\n\n"
+                    "Start with a brief, objective summary of the error. Use the Slack-specific formatting guidelines provided earlier. "
+                    "Be concise but informative, aiming to give Yarado support staff a clear understanding of what happened, without any speculation on causes. "
+                    "Remember, your task is to describe the 'what' of the error, not the 'why'. The cause analysis will be done separately."
                 )},
                 {"type": "image_url",
                  "image_url": {
@@ -473,102 +478,59 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
         {
             "role": "system",
             "content": (
-                "You are an AI assistant tasked with performing a cause analysis for an error in an automated workflow. "
-                "Your goal is to analyze the provided information and identify the underlying cause of the error, providing a detailed explanation. "
-                "You should look beyond the immediate step where the error occurred and consider earlier events that could have contributed to the failure. "
-                "Iteratively reason backwards through the steps and variable changes to find the root cause, even if it happened much earlier in the process.\n\n"
+                "You are an AI assistant specialized in analyzing errors in Yarado's automated workflows. "
+                "Your analysis will help Yarado support staff understand and resolve issues in customer processes.\n\n"
                 "Context:\n"
-                "You will help Yarado in delivering support to processes that run into an error. Yarado is an automation company in the Netherlands. "
-                "It automates business processes using its own in-house developed software platform called the 'Yarado Client'. The automated processes are developed with the Yarado Client and hosted on Azure Virtual Machines (on which the Yarado Client is installed). "
-                "The automated runs happen in the cloud/background, so no human is watching the screen when the automated process is running.\n"
-                "-> The JSON code you will encounter stems from the logging of an automated process we developed with our own in-house developed application called the Yarado Client. Our normal way of working is that we manage an Azure VM for our client (in this case {customer_name}), we install the Yarado Client on this VM, and then we automate their business processes using their user accounts (as if we are a new colleague).\n"
-                "-> Step Flow: Yarado steps are identified by 'coords' (x.y), showing task progression from 1.1 down rows. Steps may shift across columns under conditions like unmet criteria. The task files may also include coordinates such as 'x.y.i.j'. These stem from subtask steps, where x.y still indicates the maintask step coordinates, but i.j indicate the subtask coordinate.\n\n"
-                "Sometimes, these processes run into a problem/error. Because we are not actually watching what is happening on the screen, it takes a lot of time to figure out what happened."
-                "Audience:\n"
-                "Your target audience is the employees of Yarado who provide support to processes running into problems. Errors pop up in Slack, triggering the Yarado-supporter (the name of the AI model) to provide support. The output will also be sent in Slack.\n\n"
-                "Input Sources Description:\n"
-                "The automated process '{process_name}' was developed for {customer_name} by Yarado.\n"
-                "1. The log data of the last {steps} steps taken during the execution of this process: This provides a detailed account of the steps leading up to the error, helping to identify any anomalies or irregularities.\n"
-                "2. A screenshot of the window that could be seen right before the error took place: This offers visual context, showing the state of the application at the point of failure.\n"
-                "3. The objective error description generated by the AI: This gives a concise summary of the error, providing a clear starting point for the analysis. Note: This is given in JSON format. Note that this is information already given to the end user, so do not repeat this in your generated output.\n"
-                "Task Complexity:\n"
-                "Your task is to pinpoint why the error occurred and explain why you think so. It is important that you conduct a deep analysis, considering events that might have contributed to the error even if they happened earlier in the task run. The model should take its time to thoroughly analyze the data and look further than just the obvious."
-                "\nInclude arguments and proof on why you think it is the reason why the automated process failed. Refer to the different sources of input. However, remember that someone giving support does not know what we saw and what this prompt was, and that we only looked at the preceding {steps} steps. Therefore mention sources they do know (i.e. logfile, from which the variable overview and preceding steps are taken from, or the screenshot, in combination with the previously generated error description).\n"
-                "You can subtly add layout/formatting to the output JSON (by following the formatting guidelines given by the Slack documentation pages which are summarized below, but also indicating emojis with enclosed ':' signs).\n\n"
-                "Formatting Guidelines:\n"
-                "- Use *bold* for emphasis.\n"
-                "- Use _italic_ for italics.\n"
-                "- Use ~strikethrough~ for strikethrough.\n"
-                "- Insert new lines using \\n.\n"
-                "- Create inline code with `back-ticks`.\n"
-                "- Create multi-line code blocks with triple back-ticks (```).\n"
-                "- Escape &, <, and > characters using &amp;, &lt;, and &gt; respectively."
-                "\nExample:\n"
-                "In a previous analysis, the failure occurred during step 8.4 'Trigger error' because the process was unable to find the input file it was looking for. This was evident from earlier steps logged in the process. Specifically, in step 5.1, the directory 'C:\\Users\\ENE01\\OneDrive - 1Energielabel\\Registraties\\Juni 2024' was not found, which led to the variable '%input_file_exists%' being set to 'False' in step 6.1. Consequently, the condition in step 7.1 'Input file exists?' was unsatisfied, leading to the process displaying a message that the input file does not exist in step 7.4. Finally, in step 8.4 'Trigger error', the process attempted to proceed but failed due to the missing input file. The root cause, however, was identified as 'Sharepoint not syncing so the robot cannot find the file'.\n\n"
-                "Additional Examples:\n"
-                "These examples show a potential obvious cause versus an underlying deeper root cause. Always ensure you iteratively reason backwards to find the potential root cause.\n"
-                "1. An error occurred at step 10.2 'Submit form' because the form could not be submitted. Looking back, step 7.3 'Fill form' showed a slow response time from the server, causing delays. Further investigation revealed that in step 5.1 'Load page', the page took unusually long to load, indicating a network issue. The root cause was identified as 'Network congestion causing delays in loading and form submission'.\n"
-                "2. A failure happened at step 12.5 'Validate data' due to incorrect data format. Tracing back, step 9.1 'Fetch data from API' logged the received data as incomplete. Checking earlier, step 6.4 'API request' indicated a timeout warning, suggesting intermittent connectivity issues. The root cause was identified as 'Unstable internet connection leading to incomplete data retrieval from API'.\n"
-                "3. An error occurred at step 9.3 'Save record' because the database was unresponsive. Looking back, step 6.2 'Connect to database' showed a connection delay. Further analysis revealed that in step 4.1 'Initialize database connection', a warning about high database load was logged. The root cause was identified as 'High database load causing delayed responses and unavailability'.\n"
-                "4. A failure happened at step 11.4 'Generate report' due to missing data fields. Tracing back, step 8.2 'Aggregate data' showed incomplete data sets. Investigating further, step 5.5 'Fetch data from source' indicated partial data retrieval. The root cause was identified as 'Data source server outage leading to incomplete data retrieval'.\n"
-                "5. An issue occurred at step 7.1 'Send email' because the email server rejected the request. Looking back, step 6.3 'Prepare email content' logged an unusually large attachment. Further analysis of step 4.4 'Fetch attachment' revealed that the file size exceeded the email server's limit. The root cause was identified as 'Attachment size exceeding email server limit causing email rejection'.\n"
-                "6. An error occurred at step 9.4 'Click button' because the button was not found. Tracing back, step 8.3 'Load form' showed that a pop-up had appeared on the screen, which was not handled by the automation. Further analysis of step 7.2 'Submit form' indicated that the pop-up was triggered by an invalid input. The root cause was identified as 'Unexpected pop-up caused by invalid input disrupting the automation flow'.\n\n"
-                "Output Format:\n"
-                "You should provide the cause analysis in the form of a single JSON object. Return only the entire - single - JSON object only. Subtly add layout/formatting to the output JSON by including markdown formatted text or indicating emojis with enclosed ':' signs.  However, keep in mind not to repeat earlier generated content (especially the content given in 'the objective error description generated by the AI'.\n"
-                "Format it in the following single JSON object structure."
-                "Format it in the following single JSON object structure."
-                "```json\n"
-                "{{\n"
-                "  \"type\": \"section\",\n"
-                "  \"text\": {{\n"
-                "    \"type\": \"mrkdwn\",\n"
-                "    \"text\": \"*Cause analysis:* [Detailed cause analysis text]\"\n"
-                "  }}\n"
-                "}}\n"
-                "```\n\n"
-                "# Objective Description of required JSON scheme:\n"
-                "# - An outer object with a key \"type\"\n"
-                "# - A nested object \"text\" with:\n"
-                "#   - A key \"type\"\n"
-                "#   - A key \"text\"\n"
-                "Input sources data (between triple > characters):\n"
-                "Objective error description in JSON format:\n>>>"
-                "{error_description}\n>>>\n\n"
-                "Log data of the last {steps} steps in JSON format:\n>>>"
-                "{preceding_steps_log}\n>>>\n\n"
-                "Screenshot -> see attached image."
+                "Yarado automates business processes using its 'Yarado Client' software on Azure Virtual Machines. "
+                "The process '{process_name}' for customer '{customer_name}' has encountered an error. "
+                "An error description has already been provided separately, so your task is to focus solely on cause analysis.\n\n"
+                "Your task:\n"
+                "Conduct a thorough cause analysis of the error, focusing on identifying the root cause and providing a clear causal chain of events. "
+                "Do not describe the error itself, as this has already been done.\n\n"
+                "Input sources:\n"
+                "1. Log data of the last {steps} steps:\n>>>\n{preceding_steps_log}\n>>>\n"
+                "2. Screenshot of the window just before the error (attached to this message).\n"
+                "3. Previous error description (for reference only, do not repeat this information):\n>>>\n{error_description}\n>>>\n\n"
+                "Formatting Guidelines for Slack messages:\n"
+                "- Use *asterisks* for bold text\n"
+                "- Use _underscores_ for italic text\n"
+                "- Use ~tildes~ for strikethrough text\n"
+                "- Use `backticks` for inline code\n"
+                "- Use ```triple backticks``` for code blocks\n"
+                "- Use > for blockquotes\n"
+                "- Use :emoji_name: for emojis\n"
+                "- Use \\n for line breaks\n\n"
+                "Remember, these are Slack-specific formatting rules, not standard markdown."
             ).format(
                 customer_name=customer_name,
                 process_name=process_name,
-                steps=len(preceding_steps_log) - 1,
-                error_description=json.dumps(error_description),
-                preceding_steps_log=json.dumps(preceding_steps_log)
+                steps=len(preceding_steps_log),
+                preceding_steps_log=json.dumps(preceding_steps_log, indent=2),
+                error_description=error_description
             )
         },
         {
             "role": "user",
             "content": [
                 {"type": "text", "text": (
-                    "Provide a structured analysis including:\n"
-                    "1. Root Cause Identification: Determine the fundamental reason for the error, looking beyond immediate triggers.\n"
-                    "2. Causal Chain: Describe the sequence of events leading to the error.\n"
-                    "3. System Interaction Analysis: Explain how different components of the system may have contributed to the error.\n"
-                    "4. Probability Assessment: Evaluate the likelihood of different potential causes.\n\n"
-                    "Complete the mrkdwn text within the single JSON object below by filling out the placeholder and returning the entire filled in json object. Return only the entire filled out - single - JSON object only. Subtly add layout/formatting to the output JSON by following the formatting guidelines given by the Slack documentation pages (shown earlier), but also indicating emojis with enclosed ':' signs (remember the formatting guidelines provided earlier). Strictly keep to the JSON scheme below.\n\nDO NOT STOP GENERATING UNTILL YOU FINSIHED THE WHOLE ANALYSIS -> The whole analysis should be placed in the same key/value pair, so do not create new key or value pairs yourself"
-                    "```json\n"
-                    "{{\n"
-                    "  \"type\": \"section\",\n"
-                    "  \"text\": {{\n"
-                    "    \"type\": \"mrkdwn\",\n"
-                    "    \"text\": \"*Cause analysis:* [Placeholder for your detailed cause analysis based on all the provided information and your in-depth reasoning]\"\n"
-                    "  }}\n"
-                    "}}\n"
-                    "```\n\n"
-                    "# Objective Description of required JSON scheme:\n"
-                    "# - An outer object with a key \"type\"\n"
-                    "# - A nested object \"text\" with:\n"
-                    "#   - A key \"type\"\n"
-                    "#   - A key \"text\"\n"
+                    "Provide a detailed cause analysis of the error, focusing solely on the reasons behind the error and potential solutions. "
+                    "Do not describe the error itself, as this has already been done in the error description. Include the following sections:\n\n"
+                    "1. *Root Cause Identification*:\n"
+                    "   - Determine the fundamental reason for the error, looking beyond immediate triggers.\n"
+                    "   - Explain why you believe this is the root cause, citing specific evidence from the logs or screenshot.\n\n"
+                    "2. *Causal Chain*:\n"
+                    "   - Provide a step-by-step breakdown of the last 10 steps leading to the error.\n"
+                    "   - For each step, briefly describe what happened and how it contributed to the error.\n"
+                    "   - Use the format: 'Step X.Y: [Brief description of action and its impact]'\n"
+                    "   - If a step didn't directly contribute to the error, you can skip it or mention it briefly.\n\n"
+                    "3. *Variable Changes*:\n"
+                    "   - Identify any significant variable changes in the log that might have contributed to the error.\n"
+                    "   - Explain how these changes might have affected the process.\n\n"
+                    "4. *Probability Assessment*:\n"
+                    "   - If there are multiple possible causes, rank them by probability and explain your reasoning.\n\n"
+                    "Use the Slack-specific formatting guidelines provided earlier to structure your response clearly. "
+                    "Be thorough in your analysis, but also concise and focused. Your goal is to provide Yarado support staff "
+                    "with actionable insights to quickly understand and address the root cause of the error, without repeating information from the error description."
                 )},
                 {"type": "image_url",
                  "image_url": {
@@ -583,39 +545,41 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
 
 
 if __name__ == '__main__':
-    run_id = 'c7ff35d0-85c7-40db-9aea-f28345789e8f'
-    client_name = 'Numidia'
-    task_name = 'Update_Credit_Limits-Finance-'
+    run_id = '0d477c4c-3741-4480-afef-4c6d648db879'
+    client_name = 'Altrecht'
+    task_name = 'Regiebehandelaar_invullen-main'
 
-    client = initialize_client()
+    try:
+        client = initialize_client()
+        print("Client initialized successfully.")
 
-    log = load_log_file(run_id)
-    image = load_screenshot(run_id)
+        log = load_log_file(run_id)
+        image = load_screenshot(run_id)
+        print('Input data loaded successfully.')
 
-    point_of_failure_descr, failed_step_id = determine_point_of_failure(log)
+        point_of_failure_descr, failed_step_id = determine_point_of_failure(log)
+        print('Point of failure determined.')
 
-    # Load the preceding steps
-    preceding_steps_log = load_log_preceding_steps(log, failed_step_id, steps_to_include=10)
+        preceding_steps_log = load_log_preceding_steps(log, failed_step_id, steps_to_include=10)
+        print('Preceding steps loaded.')
 
-    # print(json.dumps(preceding_steps_log, indent=2))
+        print('Generation of error description started...')
+        error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr,
+                                                       preceding_steps_log, image)
+        print('Error description generated successfully.')
 
-    # variable_changes = generate_textual_overview(log, preceding_steps_log)
+        print('Generation of cause analysis started...')
+        cause_analysis = perform_cause_analysis(client, client_name, task_name, preceding_steps_log, image,
+                                                error_description)
+        print('Cause analysis generated successfully.')
 
-    process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
+        print(f'\n\nError description:\n\n{error_description}\n\n')
+        print(f'Cause analysis:\n\n{cause_analysis}')
 
-    process_description = None
-    preceding_steps_descr = None
-
-    if az_record_found:
-        process_description = process_row['ProcessDescription']
-        preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
-
-    error_description = generate_error_description(client, client_name, task_name, point_of_failure_descr,
-                                                   preceding_steps_log, image)
-
-    cause_analysis = perform_cause_analysis(client, client_name, task_name, preceding_steps_log, image,
-                                            error_description)
-
-    print(f'Error description:\n\n{error_description}\n\n')
-
-    print(f'Cause analysis:\n\n{cause_analysis}')
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user. Shutting down gracefully...")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        # Perform any necessary cleanup here
+        print("Script execution completed.")
