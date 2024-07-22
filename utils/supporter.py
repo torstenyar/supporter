@@ -105,7 +105,8 @@ def load_screenshot(run_id):
         try:
             image = Image.open(BytesIO(response.content))
             buffered = BytesIO()
-            image.save(buffered, format="JPEG")
+            # Save as PNG instead of JPEG
+            image.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
             return img_str
         except IOError:
@@ -364,39 +365,32 @@ def generate_textual_overview(log_data, preceding_log_steps):
     return "\n".join(overview_lines)
 
 
-def create_json_response(content):
-    return json.dumps({
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": content
-        }
-    })
-
-
 def retry_request(client, messages, model="generate_descriptions", max_retries=5, initial_timeout=1, max_timeout=60,
                   max_tokens=4096):
     for attempt in range(max_retries):
         try:
-            print(f" Attempt {attempt + 1} of {max_retries}...")
+            print(f"Attempt {attempt + 1} of {max_retries}...")
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
+                response_format={ "type": "json_object" },
                 temperature=0.2,
                 top_p=0.7,
                 max_tokens=max_tokens,
                 frequency_penalty=0.5,
                 presence_penalty=0.0,
-                timeout=30
+                timeout=90,
+                seed=42
             )
-            print(f" Request successful on attempt {attempt + 1}")
-            return create_json_response(response.choices[0].message.content)
+            print(f"Request successful on attempt {attempt + 1}")
+            ai_generated_json = response.choices[0].message.content
+            return extract_and_create_json_response(ai_generated_json)
         except Exception as e:
             if attempt == max_retries - 1:
                 print(f"Max retries reached. Last error: {e}")
                 logging.error(f"Max retries reached. Last error: {e}")
-                error_message = f":warning: Error: Azure OpenAI did not respond successfully after multiple attempts. \n\nLast error: \n```{json.dumps(e, indent=2)}```\n\nPlease try again later."
-                return create_json_response(error_message)
+                error_message = f":warning: Error: Azure OpenAI did not respond successfully after multiple attempts. \n\nLast error: \n```{str(e)}```\n\nPlease try again later."
+                return extract_and_create_json_response(json.dumps({"text": error_message}))
 
             wait_time = min(initial_timeout * (2 ** attempt) + random.uniform(0, 1), max_timeout)
             print(f"Attempt {attempt + 1} failed. Retrying in {wait_time:.2f} seconds. Error: {e}")
@@ -404,7 +398,103 @@ def retry_request(client, messages, model="generate_descriptions", max_retries=5
             time.sleep(wait_time)
 
     # This line should never be reached due to the return statement in the loop, but it's here for completeness
-    return create_json_response(":warning: Unexpected error occurred during API request.")
+    return extract_and_create_json_response(
+        json.dumps({"text": ":warning: Unexpected error occurred during API request."}))
+
+
+def convert_to_slack_format(text):
+    # Convert bold (** or __) to Slack bold (*)
+    text = re.sub(r'(\*\*|__)(.*?)\1', r'*\2*', text)
+
+    # Convert italic (* or _) to Slack italic (_)
+    text = re.sub(r'(\*|_)(.*?)\1', r'_\2_', text)
+
+    # Convert strikethrough (~~) to Slack strikethrough (~)
+    text = re.sub(r'~~(.*?)~~', r'~\1~', text)
+
+    # Convert inline code (`) to Slack inline code (`)
+    # No change needed as it's the same in both
+
+    # Convert code blocks (```) to Slack code blocks (```)
+    # No change needed as it's the same in both
+
+    # Convert blockquotes (> ) to Slack blockquotes (>)
+    text = re.sub(r'^>\s', '>', text, flags=re.MULTILINE)
+
+    # Convert markdown links to Slack links
+    text = re.sub(r'\[([^\]]+)\]\(([^\)]+)\)', r'<\2|\1>', text)
+
+    # Convert markdown headers to Slack bold text
+    text = re.sub(r'^#{1,6}\s*(.+)$', r'*\1*', text, flags=re.MULTILINE)
+
+    return text
+
+
+def extract_and_create_json_response(ai_generated_content):
+    try:
+        # Try to parse the AI-generated content as JSON
+        try:
+            parsed_json = json.loads(ai_generated_content)
+        except json.JSONDecodeError:
+            # If it's not valid JSON, treat the entire content as text
+            parsed_json = {"text": ai_generated_content}
+
+        # Function to recursively search for the 'text' key
+        def find_text_content(obj):
+            if isinstance(obj, dict):
+                if 'text' in obj and isinstance(obj['text'], str):
+                    return obj['text']
+                for value in obj.values():
+                    result = find_text_content(value)
+                    if result:
+                        return result
+            elif isinstance(obj, list):
+                for item in obj:
+                    result = find_text_content(item)
+                    if result:
+                        return result
+            return None
+
+        # Find the text content
+        content = find_text_content(parsed_json)
+
+        if content is None:
+            raise ValueError("No 'text' key with string content found in the content")
+
+        # Convert the content to Slack format
+        slack_formatted_content = convert_to_slack_format(content)
+
+        # Create the final JSON response
+        final_response = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": slack_formatted_content
+            }
+        }
+
+        return json.dumps(final_response, ensure_ascii=False)
+
+    except ValueError as ve:
+        # Handle the case where no valid text content is found
+        error_message = f"Error: {str(ve)}"
+        return json.dumps({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": error_message
+            }
+        })
+    except Exception as e:
+        # Handle any other exceptions
+        error_message = f"Error processing the AI response: {str(e)}"
+        return json.dumps({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": error_message
+            }
+        })
 
 
 def generate_error_description(client, customer_name, process_name, point_of_failure, steps_log, screenshot):
@@ -413,7 +503,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
             "role": "system",
             "content": (
                 "You are an AI assistant designed to help Yarado support staff by objectively describing errors in automated workflows. "
-                "Your descriptions will be used directly in Slack messages to inform Yarado employees about process failures.\n\n"
+                "Your descriptions needs to be formatted in JSON format and are used directly in Slack messages to inform Yarado employees about process failures.\n\n"
                 "Context:\n"
                 "Yarado is an automation company that uses its proprietary 'Yarado Client' software to automate business processes. "
                 "These processes run on Azure Virtual Machines without human supervision. "
@@ -458,12 +548,22 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                     "4. *Affected Components*: List any specific components or systems involved in the error, without analyzing their role in causing the error.\n"
                     "5. *Error Context*: Provide relevant context from the steps leading up to the error, describing ONLY what occurred, not why.\n\n"
                     "Start with a brief, objective summary of the error. Use the Slack-specific formatting guidelines provided earlier. "
-                    "Be concise but informative, aiming to give Yarado support staff a clear understanding of what happened, without any speculation on causes. "
-                    "Remember, your task is to describe the 'what' of the error, not the 'why'. The cause analysis will be done separately."
+                    "Be concise but informative, aiming to give Yarado support staff a clear understanding of what happened, without any speculation on causes. Please ensure your entire description is generated, do not stop before completing the assignment."
+                    "Remember, your task is to describe the 'what' of the error, not the 'why'. The cause analysis will be done separately.\n\n"
+                    "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary. "
+                    "Use the following JSON structure:\n"
+                    "{\n"
+                    "    \"type\": \"section\",\n"
+                    "    \"text\": {\n"
+                    "        \"type\": \"mrkdwn\",\n"
+                    "        \"text\": \"content\"\n"
+                    "    }\n"
+                    "}\n"
+                    "Where 'content' is your formatted error description."
                 )},
                 {"type": "image_url",
                  "image_url": {
-                     "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)
+                     "url": "data:image/png;base64,{screenshot}".format(screenshot=screenshot)
                  }
                  }
             ]
@@ -479,7 +579,7 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
             "role": "system",
             "content": (
                 "You are an AI assistant specialized in analyzing errors in Yarado's automated workflows. "
-                "Your analysis will help Yarado support staff understand and resolve issues in customer processes.\n\n"
+                "Your analysis needs to be formatted in JSON format and will help Yarado support staff understand and resolve issues in customer processes.\n\n"
                 "Context:\n"
                 "Yarado automates business processes using its 'Yarado Client' software on Azure Virtual Machines. "
                 "The process '{process_name}' for customer '{customer_name}' has encountered an error. "
@@ -530,11 +630,21 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                     "   - If there are multiple possible causes, rank them by probability and explain your reasoning.\n\n"
                     "Use the Slack-specific formatting guidelines provided earlier to structure your response clearly. "
                     "Be thorough in your analysis, but also concise and focused. Your goal is to provide Yarado support staff "
-                    "with actionable insights to quickly understand and address the root cause of the error, without repeating information from the error description."
+                    "with actionable insights to quickly understand and address the root cause of the error, without repeating information from the error description. Please ensure your entire analysis is generated, do not stop before completing the assignment.\n\n"
+                    "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary. "
+                    "Use the following JSON structure:\n"
+                    "{\n"
+                    "    \"type\": \"section\",\n"
+                    "    \"text\": {\n"
+                    "        \"type\": \"mrkdwn\",\n"
+                    "        \"text\": \"content\"\n"
+                    "    }\n"
+                    "}\n"
+                    "Where 'content' is your formatted cause analysis."
                 )},
                 {"type": "image_url",
                  "image_url": {
-                     "url": "data:image/jpeg;base64,{screenshot}".format(screenshot=screenshot)
+                     "url": "data:image/png;base64,{screenshot}".format(screenshot=screenshot)
                  }
                  }
             ]

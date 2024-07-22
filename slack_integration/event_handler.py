@@ -127,15 +127,6 @@ def handle_event(data):
             # Load the preceding steps
             preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10)
 
-            process_row, task_data, az_record_found = load_task_data(customer_name=client_name, process_name=task_name)
-
-            process_description = None
-            preceding_steps_descr = None
-
-            if az_record_found:
-                process_description = process_row['ProcessDescription']
-                preceding_steps_descr = load_descr_preceding_steps(preceding_steps_log, task_data)
-
             retry_count = 0
             max_retries = 3
             while retry_count < max_retries:
