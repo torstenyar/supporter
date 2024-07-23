@@ -87,8 +87,7 @@ def load_log_file(run_id):
             def truncate_large_values(d, limit):
                 if isinstance(d, dict):
                     return {k: (truncate_large_values(v, limit) if isinstance(v, (dict, list)) else (v if len(
-                        str(v)) <= limit else "[value replaced by myself, so this did not happen in the Yarado Process. I replaced it with this placeholder because it was excessively long]".format(
-                        limit))) for k, v in d.items()}
+                        str(v)) <= limit else "hidden long string [{}]...".format(len(str(v))))) for k, v in d.items()}
                 elif isinstance(d, list):
                     return [truncate_large_values(i, limit) for i in d]
                 return d
@@ -530,7 +529,6 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "- DO NOT attempt to explain why the error occurred or what might have caused it.\n"
                 "- Stick to describing the observable symptoms and effects of the error.\n"
                 "- If you're tempted to use phrases like 'because', 'due to', or 'caused by', stop and rephrase without speculation.\n"
-                "- Note that log values exceeding a character limit have been replaced with '[value replaced by myself, so this did not happen in the Yarado Process. I replaced it with this placeholder because it was excessively long]'. This is not an indication of an error in the process, but a measure to keep log size manageable.\n\n"
                 "Input sources:\n"
                 "1. Point of failure description:\n>>>\n{point_of_failure}\n>>>\n"
                 "2. Log data of the last {steps} steps:\n>>>\n{steps_log}\n>>>\n"
@@ -566,7 +564,6 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                     "Start with a brief, objective summary of the error. Use the Slack-specific formatting guidelines provided earlier. "
                     "Be concise but informative, aiming to give Yarado support staff a clear understanding of what happened, without any speculation on causes. Please ensure your entire description is generated, do not stop before completing the assignment.\n\n"
                     "Remember, your task is to describe the 'what' of the error, not the 'why'. The cause analysis will be done separately.\n\n"
-                    "Important: Ignore any placeholders in the log data such as '[value replaced by myself, so this did not happen in the Yarado Process. I replaced it with this placeholder because it was excessively long]'. I placed this placeholder myself to truncunate the string. Otherwise it was too long for you to process.\nIf you suspect the cause of the error could be found here, indicate that you cannot fully assess the problem too to the excessive length of the specific key at hand.\n\n"
                     "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary. "
                     "Use the following JSON structure:\n"
                     "{\n"
@@ -603,7 +600,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Your task:\n"
                 "Conduct a thorough cause analysis of the error, focusing on identifying the root cause and providing a clear causal chain of events. "
                 "Do not describe the error itself, as this has already been done.\n\n"
-                "- Note that log values exceeding a character limit have been replaced with '[value replaced by myself, so this did not happen in the Yarado Process. I replaced it with this placeholder because it was excessively long]'. This is not an indication of an error in the process, but a measure to keep log size manageable.\n\n"
                 "Input sources:\n"
                 "1. Log data of the last {steps} steps:\n>>>\n{preceding_steps_log}\n>>>\n"
                 "2. Screenshot of the window just before the error (attached to this message).\n"
@@ -648,7 +644,6 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                     "Use the Slack-specific formatting guidelines provided earlier to structure your response clearly. "
                     "Be thorough in your analysis, but also concise and focused. Your goal is to provide Yarado support staff "
                     "with actionable insights to quickly understand and address the root cause of the error, without repeating information from the error description. Please ensure your entire analysis is generated, do not stop before completing the assignment.\n\n"
-                    "Important: Ignore any placeholders in the log data such as '[value replaced by myself, so this did not happen in the Yarado Process. I replaced it with this placeholder because it was excessively long]'. I placed this placeholder myself to truncunate the string. Otherwise it was too long for you to process.\nIf you suspect the cause of the error could be found here, indicate that you cannot fully assess the problem too to the excessive length of the specific key at hand.\n\n"
                     "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary. "
                     "Use the following JSON structure:\n"
                     "{\n"
