@@ -74,12 +74,27 @@ def load_log_file(run_id):
     headers = {
         "X-API-KEY": get_sha256(YARADO_API_KEY)
     }
+    CHARACTER_LIMIT = 30000  # Define the character limit for log values
+
     try:
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status()
 
         try:
             log_json = json.loads(response.text)
+
+            # Iterate over key-value pairs and replace values exceeding the character limit
+            def truncate_large_values(d, limit):
+                if isinstance(d, dict):
+                    return {k: (truncate_large_values(v, limit) if isinstance(v, (dict, list)) else (v if len(
+                        str(v)) <= limit else "[value removed by us because it exceeded the character limit of {} characters]".format(
+                        limit))) for k, v in d.items()}
+                elif isinstance(d, list):
+                    return [truncate_large_values(i, limit) for i in d]
+                return d
+
+            log_json = truncate_large_values(log_json, CHARACTER_LIMIT)
+
             # Pretty print the JSON object
             pretty_log = json.dumps(log_json, indent=2, ensure_ascii=False)
 
@@ -503,7 +518,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
             "role": "system",
             "content": (
                 "You are an AI assistant designed to help Yarado support staff by objectively describing errors in automated workflows. "
-                "Your descriptions needs to be formatted in JSON format and are used directly in Slack messages to inform Yarado employees about process failures.\n\n"
+                "Your descriptions need to be formatted in JSON format and are used directly in Slack messages to inform Yarado employees about process failures.\n\n"
                 "Context:\n"
                 "Yarado is an automation company that uses its proprietary 'Yarado Client' software to automate business processes. "
                 "These processes run on Azure Virtual Machines without human supervision. "
@@ -514,7 +529,8 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                 "Important:\n"
                 "- DO NOT attempt to explain why the error occurred or what might have caused it.\n"
                 "- Stick to describing the observable symptoms and effects of the error.\n"
-                "- If you're tempted to use phrases like 'because', 'due to', or 'caused by', stop and rephrase without speculation.\n\n"
+                "- If you're tempted to use phrases like 'because', 'due to', or 'caused by', stop and rephrase without speculation.\n"
+                "- Note that log values exceeding a character limit have been replaced with '[value removed by us because it exceeded the character limit of ... characters]'. This is not an indication of an error in the process, but a measure to keep log size manageable. Ignore these placeholders during your analysis.\n\n"
                 "Input sources:\n"
                 "1. Point of failure description:\n>>>\n{point_of_failure}\n>>>\n"
                 "2. Log data of the last {steps} steps:\n>>>\n{steps_log}\n>>>\n"
@@ -548,8 +564,9 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
                     "4. *Affected Components*: List any specific components or systems involved in the error, without analyzing their role in causing the error.\n"
                     "5. *Error Context*: Provide relevant context from the steps leading up to the error, describing ONLY what occurred, not why.\n\n"
                     "Start with a brief, objective summary of the error. Use the Slack-specific formatting guidelines provided earlier. "
-                    "Be concise but informative, aiming to give Yarado support staff a clear understanding of what happened, without any speculation on causes. Please ensure your entire description is generated, do not stop before completing the assignment."
+                    "Be concise but informative, aiming to give Yarado support staff a clear understanding of what happened, without any speculation on causes. Please ensure your entire description is generated, do not stop before completing the assignment.\n\n"
                     "Remember, your task is to describe the 'what' of the error, not the 'why'. The cause analysis will be done separately.\n\n"
+                    "Important: Ignore any placeholders in the log data such as '[value removed by us because it exceeded the character limit of ... characters]'. These placeholders are not relevant to the error and do not indicate a problem in the process.  I placed this placeholder myself to truncunate the string. Otherwise it was too long for you to process.\n\n"
                     "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary. "
                     "Use the following JSON structure:\n"
                     "{\n"
@@ -572,7 +589,6 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
 
     return retry_request(client, messages)
 
-
 def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description):
     messages = [
         {
@@ -587,6 +603,7 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                 "Your task:\n"
                 "Conduct a thorough cause analysis of the error, focusing on identifying the root cause and providing a clear causal chain of events. "
                 "Do not describe the error itself, as this has already been done.\n\n"
+                "- Note that log values exceeding a character limit have been replaced with '[value removed by us because it exceeded the character limit of ... characters]'. This is not an indication of an error in the process, but a measure to keep log size manageable. Ignore these placeholders during your analysis. However, if this truncuation might be related to the actual error, you may refer to the excessive length of the specific element - and this alone is cause for attention.\n\n"
                 "Input sources:\n"
                 "1. Log data of the last {steps} steps:\n>>>\n{preceding_steps_log}\n>>>\n"
                 "2. Screenshot of the window just before the error (attached to this message).\n"
@@ -631,6 +648,7 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
                     "Use the Slack-specific formatting guidelines provided earlier to structure your response clearly. "
                     "Be thorough in your analysis, but also concise and focused. Your goal is to provide Yarado support staff "
                     "with actionable insights to quickly understand and address the root cause of the error, without repeating information from the error description. Please ensure your entire analysis is generated, do not stop before completing the assignment.\n\n"
+                    "Important: Ignore any placeholders in the log data such as '[value removed by us because it exceeded the character limit of 30000 characters]'. These placeholders are not relevant to the error and do not indicate a problem in the process. I placed this placeholder myself to truncunate the string. Otherwise it was too long for you to process. However, if this truncuation might be related to the actual error, you may refer to the excessive length of the specific element - and this alone is cause for attention.\n\n"
                     "Provide your answer in JSON form. Reply with only the answer in JSON form and include no other commentary. "
                     "Use the following JSON structure:\n"
                     "{\n"
@@ -655,9 +673,9 @@ def perform_cause_analysis(client, customer_name, process_name, preceding_steps_
 
 
 if __name__ == '__main__':
-    run_id = '0d477c4c-3741-4480-afef-4c6d648db879'
-    client_name = 'Altrecht'
-    task_name = 'Regiebehandelaar_invullen-main'
+    run_id = '36f32783-4999-41e7-8d0c-f48c1f2eeb12'
+    client_name = 'Ultimoo'
+    task_name = 'Email-Classification-and-Summary-main'
 
     try:
         client = initialize_client()

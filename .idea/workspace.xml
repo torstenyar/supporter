@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Fixes to improve stability">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Bug fixes for stability">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -477,7 +475,15 @@
       <option name="project" value="LOCAL" />
       <updated>1721643394548</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="Bug fixes for stability">
+      <option name="closed" value="true" />
+      <created>1721645358666</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1721645358666</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -519,6 +525,7 @@
     <MESSAGE value="Added retry mechanism and corrected the part about retriggering with the same emoji." />
     <MESSAGE value="Tried to improve stability, removed JSON mode." />
     <MESSAGE value="Fixes to improve stability" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixes to improve stability" />
+    <MESSAGE value="Bug fixes for stability" />
+    <option name="LAST_COMMIT_MESSAGE" value="Bug fixes for stability" />
   </component>
 </project>
