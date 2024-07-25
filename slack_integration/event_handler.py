@@ -162,6 +162,9 @@ def handle_event(data):
 
                     # Send the detailed response message using blocks
                     send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
+
+                    #send run id with supporter tag to yarado api
+
                     break  # Exit loop if message is sent successfully
 
                 except Exception as e:
