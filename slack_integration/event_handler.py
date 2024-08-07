@@ -1,18 +1,15 @@
 import logging
 import json
+import aiohttp
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
+import os
 from .message_handler import fetch_message, send_message
 from .slack_client import bot_user_id
 from utils.azure_data_loader import load_task_data
 from utils.azure_openai_client import initialize_client
-from utils.supporter import load_log_file
-from utils.supporter import load_screenshot
-from utils.supporter import determine_point_of_failure
-from utils.supporter import load_descr_preceding_steps
-from utils.supporter import load_log_preceding_steps
-from utils.supporter import generate_error_description
-from utils.supporter import perform_cause_analysis
-from utils.supporter import extract_data_from_message
-from utils.supporter import generate_textual_overview
+from utils.supporter import load_log_file, load_screenshot, determine_point_of_failure
+from utils.supporter import load_log_preceding_steps, generate_error_description, perform_cause_analysis
+from utils.supporter import extract_data_from_message, generate_textual_overview
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,9 +20,35 @@ reaction_tracker = {}
 # Define the list of allowed channel IDs
 ALLOWED_CHANNELS = ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']
 
+# Azure Service Bus configuration
+CONNECTION_STR = os.environ['SERVICEBUS_CONNECTION_STR']
+SUPPORTER_DATA_QUEUE = os.environ['SUPPORTER_DATA_QUEUE']
 
-def handle_event(data):
-    global reaction_tracker  # Ensure we are using the global reaction_tracker
+
+async def send_supporter_data_to_uardi(task_run_id: str, task_name: str, step_id_pof: str, ai_cause: str,
+                                       ai_description: str):
+    """
+    Send supporter data to the UARDI system via Azure Service Bus queue.
+    """
+    data = {
+        "task_run_id": task_run_id,
+        "task_name": task_name,
+        "step_id_pof": step_id_pof,
+        "ai_cause": ai_cause,
+        "ai_description": ai_description
+    }
+
+    servicebus_client = ServiceBusClient.from_connection_string(conn_str=CONNECTION_STR)
+    sender = servicebus_client.get_queue_sender(queue_name=SUPPORTER_DATA_QUEUE)
+
+    async with sender:
+        message = ServiceBusMessage(json.dumps(data))
+        await sender.send_messages(message)
+        logging.info(f"Successfully sent supporter data to the queue for task run: {task_run_id}")
+
+
+async def handle_event(data):
+    global reaction_tracker
     event = data.get('event', {})
     logging.info("Received event: {}".format(event))
     az_client = initialize_client()
@@ -163,7 +186,16 @@ def handle_event(data):
                     # Send the detailed response message using blocks
                     send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
 
-                    #send run id with supporter tag to yarado api
+                    # send run id with supporter tag to yarado api
+
+                    # Send data to UARDI prep for resolved container
+                    await send_supporter_data_to_uardi(
+                        task_run_id=run_id,
+                        task_name=task_name,
+                        step_id_pof=failed_step_id,
+                        ai_cause=json.loads(cause_analysis)['text']['text'],
+                        ai_description=json.loads(error_description)['text']['text']
+                    )
 
                     break  # Exit loop if message is sent successfully
 
