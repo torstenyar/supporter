@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from flask import Flask, request, Response
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
@@ -43,26 +43,26 @@ trace.set_tracer_provider(provider)
 app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app)
 
-
 @app.before_request
 def before_request():
     ip_address = request.remote_addr
     span = trace.get_current_span()
     span.set_attribute("user.ip", ip_address)
 
-
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
     logging.info(f'Received request to /slack/events in {ENVIRONMENT} environment')
     data = request.json
-    if "challenge" in data:
-        logging.info("Responding to Slack challenge")
-        return jsonify({"challenge": data["challenge"]})
 
+    # Handle URL verification
+    if data and data.get("type") == "url_verification":
+        logging.info("Responding to Slack URL verification challenge")
+        return Response(data["challenge"], content_type="text/plain")
+
+    # Handle other events
     logging.info(f'Starting Yarado supporter in {ENVIRONMENT} environment...')
     handle_event(data, ENVIRONMENT, slack_client)
     return '', 200
-
 
 if __name__ == "__main__":
     print(f"Starting Yarado Supporter in {ENVIRONMENT} environment on port {port}")
