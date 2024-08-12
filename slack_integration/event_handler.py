@@ -20,7 +20,7 @@ reaction_tracker = {}
 # Define the list of allowed channel IDs and valid reactions based on environment
 CHANNEL_CONFIG = {
     'development': ['C07557UUU2K'],  # Test channel for development app
-    'production': ['C05D311FKPF', 'C05CFG7D0TU']  # Production channels
+    'production': ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']  # Production channels
 }
 
 REACTION_CONFIG = {
