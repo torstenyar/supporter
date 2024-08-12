@@ -2,8 +2,8 @@ import logging
 import json
 import os
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
-from .message_handler import fetch_message, send_message
-from .slack_client import bot_user_id
+from slack_integration.message_handler import fetch_message, send_message
+from slack_integration.slack_client import get_bot_user_id
 from utils.azure_openai_client import initialize_client
 from utils.supporter import (
     load_log_file, load_screenshot, determine_point_of_failure,
@@ -17,12 +17,21 @@ logging.basicConfig(level=logging.INFO)
 # In-memory dictionary to track reactions per user, message, and emoji
 reaction_tracker = {}
 
-# Define the list of allowed channel IDs
-ALLOWED_CHANNELS = ['C07557UUU2K', 'C05D311FKPF', 'C05CFG7D0TU']
+# Define the list of allowed channel IDs and valid reactions based on environment
+CHANNEL_CONFIG = {
+    'development': ['C07557UUU2K'],  # Test channel for development app
+    'production': ['C05D311FKPF', 'C05CFG7D0TU']  # Production channels
+}
 
-# Azure Service Bus configuration
+REACTION_CONFIG = {
+    'development': ['test_tube'],  # Test reaction for development app
+    'production': ['yara-sup-1', 'yara-sup-backup']  # Production reactions
+}
+
+# Azure Service Bus configuration (same for both environments)
 SERVICEBUS_CONNECTION_STR = os.environ['SERVICEBUS_CONNECTION_STR']
 SUPPORTER_DATA_QUEUE = os.environ['SUPPORTER_DATA_QUEUE']
+
 
 def send_supporter_data_to_uardi(data):
     """
@@ -39,13 +48,17 @@ def send_supporter_data_to_uardi(data):
     except Exception as e:
         logging.error(f"Failed to send message to queue: {e}")
 
-def handle_event(data):
+
+def handle_event(data, environment, slack_client):
     global reaction_tracker
     event = data.get('event', {})
-    logging.info(f"Received event: {event}")
+    logging.info(f"Received event in {environment} environment: {event}")
+
+    bot_user_id = get_bot_user_id(slack_client)
     az_client = initialize_client()
 
-    valid_reactions = ['yara-sup-1', 'yara-sup-backup']
+    allowed_channels = CHANNEL_CONFIG[environment]
+    valid_reactions = REACTION_CONFIG[environment]
 
     if event.get('type') == 'reaction_added' and event.get('reaction') in valid_reactions:
         user_id = event.get('user')
@@ -58,11 +71,12 @@ def handle_event(data):
         message_timestamp = event['item']['ts']
         event_timestamp = event['event_ts']
 
-        if channel_id not in ALLOWED_CHANNELS:
+        if channel_id not in allowed_channels:
             logging.info("Reaction added in a non-allowed channel. Ignoring the event.")
             return
 
-        logging.info(f"Handling reaction_added event for channel {channel_id} and timestamp {message_timestamp} and event_timestamp {event_timestamp}")
+        logging.info(
+            f"Handling reaction_added event for channel {channel_id} and timestamp {message_timestamp} and event_timestamp {event_timestamp}")
 
         if reaction_tracker.get((channel_id, message_timestamp, user_id, reaction)):
             logging.info("This reaction has already been processed for this user and emoji.")
@@ -70,7 +84,7 @@ def handle_event(data):
 
         reaction_tracker[(channel_id, message_timestamp, user_id, reaction)] = True
 
-        message = fetch_message(channel_id, message_timestamp)
+        message = fetch_message(slack_client, channel_id, message_timestamp)
         if message:
             logging.info("Fetched message!")
 
@@ -89,7 +103,7 @@ def handle_event(data):
                 if not run_id:
                     error_message += "- Run ID could not be found."
 
-                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                 logging.error(error_message)
                 return
 
@@ -98,32 +112,32 @@ def handle_event(data):
                     ":confused: Warning: It looks like this error originates from a user/manual triggered run. "
                     "Currently, I am unable to handle these types of error and am solely focused on cloud orchestrated runs. "
                     "If you believe this is a mistake, please contact support (aka Torsten).")
-                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                 logging.error(error_message)
                 return
 
             initial_message = ("Thanks for your request! I will take a moment to analyze the cause of this error. Will "
                                "come back to you ASAP :hourglass_flowing_sand:")
-            send_message(channel_id, message_timestamp, initial_message, as_text=True)
+            send_message(slack_client, channel_id, message_timestamp, initial_message, as_text=True)
 
             log_file = load_log_file(run_id)
             if log_file is None:
                 error_message = ":warning: Error: Unable to fetch the log file. Please try again later."
-                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                 return
             elif log_file == "INVALID_JSON":
                 error_message = ":warning: Error: At this moment only JSON formatted log files are supported."
-                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                 return
 
             screenshot = load_screenshot(run_id)
             if screenshot is None:
                 error_message = ":warning: Error: Unable to fetch the screenshot. Please try again later."
-                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                 return
             elif screenshot == "INVALID_IMAGE":
                 error_message = ":warning: Error: The screenshot is not a valid image."
-                send_message(channel_id, message_timestamp, error_message, as_text=True)
+                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                 return
 
             point_of_failure_descr, failed_step_id = determine_point_of_failure(log_file)
@@ -159,7 +173,7 @@ def handle_event(data):
                         json.loads(cause_analysis)
                     ])
 
-                    send_message(channel_id, message_timestamp, blocks_analysis, as_text=False)
+                    send_message(slack_client, channel_id, message_timestamp, blocks_analysis, as_text=False)
 
                     supporter_data = {
                         "task_run_id": run_id,
@@ -179,7 +193,7 @@ def handle_event(data):
                     if retry_count == max_retries:
                         error_message = (":warning: Error: Unable to send the analysis message after multiple "
                                          "attempts. Please try again later.")
-                        send_message(channel_id, message_timestamp, error_message, as_text=True)
+                        send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
                         return
 
     elif event.get('type') == 'reaction_removed' and event.get('reaction') in valid_reactions:

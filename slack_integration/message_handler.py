@@ -1,10 +1,9 @@
-from .slack_client import client
 from slack_sdk.errors import SlackApiError
 import logging
 import json
 
 
-def fetch_message(channel, timestamp):
+def fetch_message(client, channel, timestamp):
     try:
         response = client.conversations_history(
             channel=channel,
@@ -19,7 +18,7 @@ def fetch_message(channel, timestamp):
         return None
 
 
-def react_to_message(channel, timestamp, reaction):
+def react_to_message(client, channel, timestamp, reaction):
     try:
         response = client.reactions_add(
             channel=channel,
@@ -31,7 +30,7 @@ def react_to_message(channel, timestamp, reaction):
         logging.error(f"Error adding reaction: {e.response['error']}")
 
 
-def send_message(channel, thread_ts, content, as_text=True):
+def send_message(client, channel, thread_ts, content, as_text=True):
     try:
         if as_text:
             response = client.chat_postMessage(

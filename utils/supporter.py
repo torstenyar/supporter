@@ -17,7 +17,6 @@ load_dotenv()
 
 from PIL import Image
 from io import BytesIO
-from utils.azure_data_loader import load_task_data
 from utils.azure_openai_client import initialize_client
 
 YARADO_API_KEY = os.getenv('YARADO_API_KEY')
