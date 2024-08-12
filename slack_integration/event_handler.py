@@ -11,6 +11,12 @@ from utils.supporter import (
     perform_cause_analysis, extract_data_from_message
 )
 
+# Uncomment below for local testing
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
@@ -187,7 +193,9 @@ def handle_event(data, environment, slack_client):
                         "ai_cause": json.loads(cause_analysis)['text']['text'],
                         "ai_description": json.loads(error_description)['text']['text']
                     }
-                    send_supporter_data_to_uardi(supporter_data)
+
+                    if environment == 'production':  # Send data only in production mode
+                        send_supporter_data_to_uardi(supporter_data)
 
                     break
 

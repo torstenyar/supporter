@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Added a development option to test new functionalities">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Added shadow channel to production app as well.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -178,7 +175,6 @@
         <item itemvalue="Python.app" />
         <item itemvalue="Python.event_handler" />
         <item itemvalue="Python.supporter" />
-        <item itemvalue="Python.azure_data_loader (1)" />
         <item itemvalue="Python.azure_data_loader" />
       </list>
     </recent_temporary>
@@ -198,22 +194,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Generate error descriptions">
-      <option name="closed" value="true" />
-      <created>1719586238660</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1719586238660</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Generate error descriptions">
-      <option name="closed" value="true" />
-      <created>1719586757798</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1719586757798</updated>
     </task>
     <task id="LOCAL-00005" summary="Generate error descriptions">
       <option name="closed" value="true" />
@@ -591,7 +571,23 @@
       <option name="project" value="LOCAL" />
       <updated>1723471136175</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="Added a development option to test new functionalities">
+      <option name="closed" value="true" />
+      <created>1723472815760</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1723472815760</updated>
+    </task>
+    <task id="LOCAL-00053" summary="Added shadow channel to production app as well.">
+      <option name="closed" value="true" />
+      <created>1723473568987</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1723473568987</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -609,7 +605,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Removed bugs" />
     <MESSAGE value="Included error handling for non JSON log files" />
     <MESSAGE value="Comments" />
     <MESSAGE value="Comments and small adjustment for objective descriptions" />
@@ -634,6 +629,7 @@
     <MESSAGE value="service bus queue integration" />
     <MESSAGE value="Fixed issue" />
     <MESSAGE value="Added a development option to test new functionalities" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added a development option to test new functionalities" />
+    <MESSAGE value="Added shadow channel to production app as well." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added shadow channel to production app as well." />
   </component>
 </project>
