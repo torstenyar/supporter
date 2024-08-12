@@ -173,7 +173,11 @@ def handle_event(data, environment, slack_client):
                         json.loads(cause_analysis)
                     ])
 
-                    send_message(slack_client, channel_id, message_timestamp, blocks_analysis, as_text=False)
+                    try:
+                        send_message(slack_client, channel_id, message_timestamp, blocks_analysis, as_text=False)
+                    except Exception as e:
+                        logging.error(f"Error sending message: {str(e)}")
+                        logging.error(f"Attempted to send blocks: {blocks_analysis}")
 
                     supporter_data = {
                         "task_run_id": run_id,

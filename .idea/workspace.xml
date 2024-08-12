@@ -4,15 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Fixed issue">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Added a development option to test new functionalities">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/slack_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/slack_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/azure_data_loader.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supporter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/update_shared_knowledge_db.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -201,22 +198,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00001" summary="Second commit">
-      <option name="closed" value="true" />
-      <created>1718795915971</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1718795915971</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Added point of failure description">
-      <option name="closed" value="true" />
-      <created>1719568068950</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1719568068950</updated>
     </task>
     <task id="LOCAL-00003" summary="Generate error descriptions">
       <option name="closed" value="true" />
@@ -578,7 +559,39 @@
       <option name="project" value="LOCAL" />
       <updated>1723047725043</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="Added a development option to test new functionalities">
+      <option name="closed" value="true" />
+      <created>1723470404350</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1723470404350</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Added a development option to test new functionalities">
+      <option name="closed" value="true" />
+      <created>1723470649813</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1723470649813</updated>
+    </task>
+    <task id="LOCAL-00050" summary="Added a development option to test new functionalities">
+      <option name="closed" value="true" />
+      <created>1723470852270</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1723470852271</updated>
+    </task>
+    <task id="LOCAL-00051" summary="Added a development option to test new functionalities">
+      <option name="closed" value="true" />
+      <created>1723471136175</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1723471136175</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -596,7 +609,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Added cause analysis!" />
     <MESSAGE value="Removed bugs" />
     <MESSAGE value="Included error handling for non JSON log files" />
     <MESSAGE value="Comments" />
@@ -621,6 +633,7 @@
     <MESSAGE value="Fixes on long items in log file." />
     <MESSAGE value="service bus queue integration" />
     <MESSAGE value="Fixed issue" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed issue" />
+    <MESSAGE value="Added a development option to test new functionalities" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added a development option to test new functionalities" />
   </component>
 </project>
