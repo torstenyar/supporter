@@ -53,10 +53,13 @@ def before_request():
 
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
-    logging.info(f'Starting Yarado supporter in {ENVIRONMENT} environment...')
+    logging.info(f'Received request to /slack/events in {ENVIRONMENT} environment')
     data = request.json
     if "challenge" in data:
+        logging.info("Responding to Slack challenge")
         return jsonify({"challenge": data["challenge"]})
+
+    logging.info(f'Starting Yarado supporter in {ENVIRONMENT} environment...')
     handle_event(data, ENVIRONMENT, slack_client)
     return '', 200
 
