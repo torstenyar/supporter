@@ -11,6 +11,12 @@ from utils.supporter import (
     perform_cause_analysis, extract_data_from_message
 )
 
+# Uncomment below for local testing
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
@@ -31,6 +37,7 @@ REACTION_CONFIG = {
 # Azure Service Bus configuration (same for both environments)
 SERVICEBUS_CONNECTION_STR = os.environ['SERVICEBUS_CONNECTION_STR']
 SUPPORTER_DATA_QUEUE = os.environ['SUPPORTER_DATA_QUEUE']
+SUPPORTER_TRIGGERED = os.environ['SUPPORTER_TRIGGERED']
 
 
 def send_supporter_data_to_uardi(data):
@@ -45,6 +52,22 @@ def send_supporter_data_to_uardi(data):
                 message = ServiceBusMessage(json.dumps(data))
                 sender.send_messages(message)
                 logging.info("Sent message to SUPPORTER_DATA_QUEUE")
+    except Exception as e:
+        logging.error(f"Failed to send message to queue: {e}")
+
+
+def send_task_run_id_to_yarado(data):
+    """
+    Sends the given data to the SUPPORTER_TRIGGERED in Azure Service Bus.
+    """
+    try:
+        servicebus_client = ServiceBusClient.from_connection_string(conn_str=SERVICEBUS_CONNECTION_STR)
+        with servicebus_client:
+            sender = servicebus_client.get_queue_sender(queue_name=SUPPORTER_TRIGGERED)
+            with sender:
+                message = ServiceBusMessage(json.dumps(data))
+                sender.send_messages(message)
+                logging.info("Sent task_run_id to SUPPORTER_TRIGGERED")
     except Exception as e:
         logging.error(f"Failed to send message to queue: {e}")
 
@@ -187,7 +210,14 @@ def handle_event(data, environment, slack_client):
                         "ai_cause": json.loads(cause_analysis)['text']['text'],
                         "ai_description": json.loads(error_description)['text']['text']
                     }
-                    send_supporter_data_to_uardi(supporter_data)
+
+                    yarado_data = {
+                        "task_run_id": run_id
+                    }
+
+                    if environment == 'production':  # Send data only in production mode
+                        send_supporter_data_to_uardi(supporter_data)
+                        send_task_run_id_to_yarado(yarado_data)
 
                     break
 
