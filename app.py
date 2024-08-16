@@ -31,24 +31,24 @@ azure_api_key = os.getenv('AZURE_API_KEY')
 servicebus_connection_str = os.getenv('SERVICEBUS_CONNECTION_STR')
 supporter_data_queue = os.getenv('SUPPORTER_DATA_QUEUE')
 
-# Configure OpenTelemetry
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 resource = Resource.create(attributes={"service.name": "yarado-supporter-web-app"})
 provider = TracerProvider(resource=resource)
+trace.set_tracer_provider(provider)
 
-# Configure Azure Monitor only if connection string is available
 if connection_string:
     try:
         from azure.monitor.opentelemetry import configure_azure_monitor
-        configure_azure_monitor(
-            connection_string=connection_string,
-        )
-        print("Azure Monitor configured successfully.")
-    except Exception as e:
-        print(f"Failed to configure Azure Monitor: {e}")
-else:
-    print("Azure Monitor connection string not provided. Skipping Azure Monitor configuration.")
 
-trace.set_tracer_provider(provider)
+        configure_azure_monitor(connection_string=connection_string)
+        logger.info("Azure Monitor configured successfully.")
+    except Exception as e:
+        logger.error(f"Failed to configure Azure Monitor: {e}")
+else:
+    logger.warning("Azure Monitor connection string not provided. Skipping Azure Monitor configuration.")
 
 app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app)
