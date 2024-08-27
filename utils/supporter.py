@@ -146,6 +146,13 @@ def determine_point_of_failure(log_file):
     if task_failed_index is None:
         return "No TASK_FAILED event found", None
 
+    last_completed_index = next(
+        (i for i in range(task_failed_index - 1, -1, -1) if log_entries[i]['eventType'] == 'STEP_COMPLETED'), None)
+
+    if last_completed_index is None:
+        logging.warning("No STEP_COMPLETED event found before TASK_FAILED")
+        return "No STEP_COMPLETED event found before TASK_FAILED", None
+
     # Traverse backwards from the TASK_FAILED event to find the last STEP_COMPLETED event
     steps_after_last_completed = []
     for i in range(task_failed_index - 1, -1, -1):
@@ -386,7 +393,7 @@ def retry_request(client, messages, model="generate_descriptions", max_retries=5
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                response_format={ "type": "json_object" },
+                response_format={"type": "json_object"},
                 temperature=0.2,
                 top_p=0.7,
                 max_tokens=max_tokens,
@@ -584,6 +591,7 @@ def generate_error_description(client, customer_name, process_name, point_of_fai
     ]
 
     return retry_request(client, messages)
+
 
 def perform_cause_analysis(client, customer_name, process_name, preceding_steps_log, screenshot, error_description):
     messages = [

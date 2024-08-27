@@ -31,9 +31,19 @@ azure_api_key = os.getenv('AZURE_API_KEY')
 servicebus_connection_str = os.getenv('SERVICEBUS_CONNECTION_STR')
 supporter_data_queue = os.getenv('SUPPORTER_DATA_QUEUE')
 
+
+class HealthCheckFilter(logging.Filter):
+    def filter(self, record):
+        return 'GET /health' not in record.getMessage()
+
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Add the HealthCheckFilter to the logger
+for handler in logger.handlers:
+    handler.addFilter(HealthCheckFilter())
 
 resource = Resource.create(attributes={"service.name": "yarado-supporter-web-app"})
 provider = TracerProvider(resource=resource)
@@ -63,12 +73,20 @@ def before_request():
 
 @app.route('/slack/events', methods=['POST'])
 def slack_events():
-    logging.info('Starting Yarado supporter...')
+    logging.info('Receiving Slack event...')
     data = request.json
+    if not data or "type" not in data:
+        logging.warning('Received non-Slack event request. Ignoring.')
+        return '', 200
     if "challenge" in data:
         return jsonify({"challenge": data["challenge"]})
     handle_event(data, ENVIRONMENT, slack_client)
     return '', 200
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
 
 
 if __name__ == "__main__":

@@ -15,8 +15,10 @@ COPY . /
 
 # Ensure logs are sent to stdout/stderr
 ENV PYTHONUNBUFFERED=1
+ENV YARADO_ENVIRONMENT=production
+ENV PORT=80
 
-# Expose the port
+# Expose the port for the application and health checks
 EXPOSE 80
 
 # Run the Flask application
