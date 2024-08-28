@@ -1,13 +1,14 @@
 # utils/uardi_integration.py
 
 from typing import Dict, Any, Optional
-from .uardi_wrapper import MainTaskWrapper, StepsWrapper
+from .uardi_wrapper import MainTaskWrapper, StepsWrapper, ResolvedErrorWrapper
 import json
 
 
-async def get_uardi_context(organisation_name: str, task_name: str, step_ids: list[str]) -> Dict[str, Any]:
+async def get_uardi_context(organisation_name: str, task_name: str, step_ids: list[str], failed_step_id: str) -> Dict[str, Any]:
     main_task_container = MainTaskWrapper()
     steps_container = StepsWrapper()
+    resolved_error_container = ResolvedErrorWrapper()
 
     task_data = await main_task_container.get_main_task(organisation_name, task_name)
 
@@ -35,8 +36,12 @@ async def get_uardi_context(organisation_name: str, task_name: str, step_ids: li
                 "type": step_data.get('type')
             }
 
+    resolved_errors = await resolved_error_container.get_resolved_errors(organisation_id, failed_step_id)
+
     context = {
         "main_task_data": task_data,
-        "step_descriptions": step_descriptions
+        "step_descriptions": step_descriptions,
+        "resolved_errors": resolved_errors
     }
+
     return context
