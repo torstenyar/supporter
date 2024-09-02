@@ -893,31 +893,34 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
 
 
 def assemble_blocks(ai_output):
-    """Convert the AI output into a Slack message format and capture the summary block."""
+    """Convert the AI output into a Slack message format and return the summary block separately."""
     slack_message = {"blocks": []}
-    summary_text = ""  # Initialize to store the content of the summary block
+    summary_text = ""  # To store the content of the summary block
 
     # Iterate through the blocks and build the message
-    for key in sorted(ai_output.keys(), key=lambda x: int(x.replace('block', ''))):
+    for key in sorted(ai_output.keys(), key=lambda x: int(key.replace('block', ''))):
         block = ai_output[key]
 
-        # Directly add the section block to the message
+        # Ensure the block text is not empty
         if block['type'] == 'section' and 'text' in block and 'text' in block['text']:
-            # Capture the summary block's content (assuming block1 is the summary)
-            if key == "block1":
-                summary_text = block['text']['text']
+            block_text = block['text']['text'].strip()  # Strip any surrounding whitespace
+            if block_text:
+                # Add the section block to the message
+                slack_message['blocks'].append({
+                    "type": block['type'],
+                    "text": {
+                        "type": block['text']['type'],
+                        "text": block_text
+                    }
+                })
 
-            # Add the section block to the Slack message
-            slack_message['blocks'].append({
-                "type": block['type'],
-                "text": {
-                    "type": block['text']['type'],
-                    "text": block['text']['text']
-                }
-            })
+                # Capture the summary block's content
+                if key == "block1":  # Assuming block1 is the summary block
+                    summary_text = block_text
 
         # Add a divider after each section block (except the last one)
         if key != list(ai_output.keys())[-1]:
             slack_message['blocks'].append({"type": "divider"})
 
     return slack_message, summary_text
+

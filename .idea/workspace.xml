@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Yarado-Supporter-2 soft launch - fixed indent level">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Yarado-Supporter-2 soft launch - fixed some bugs">
+      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
     </list>
@@ -39,24 +40,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.azure_data_loader (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.azure_data_loader.executor&quot;: &quot;Run&quot;,
-    &quot;Python.event_handler.executor&quot;: &quot;Run&quot;,
-    &quot;Python.staging_supporter.executor&quot;: &quot;Run&quot;,
-    &quot;Python.supporter.executor&quot;: &quot;Run&quot;,
-    &quot;Python.uardi_integration.executor&quot;: &quot;Run&quot;,
-    &quot;Python.uardi_wrapper.executor&quot;: &quot;Run&quot;,
-    &quot;Python.usage_insights.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;development&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/torstenoosterholt/PycharmProjects/yarado-supporter/utils&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.app.executor": "Run",
+    "Python.azure_data_loader (1).executor": "Run",
+    "Python.azure_data_loader.executor": "Run",
+    "Python.constructor.executor": "Run",
+    "Python.event_handler.executor": "Run",
+    "Python.staging_supporter.executor": "Run",
+    "Python.supporter.executor": "Run",
+    "Python.uardi_integration.executor": "Run",
+    "Python.uardi_wrapper.executor": "Run",
+    "Python.usage_insights.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "development",
+    "last_opened_file_path": "/Users/torstenoosterholt/PycharmProjects/yarado-supporter/utils",
+    "settings.editor.selected.configurable": "vcs.Git"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/utils" />
@@ -70,7 +72,29 @@
       <recent name="$PROJECT_DIR$/.venv" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.staging_supporter">
+  <component name="RunManager" selected="Python.constructor">
+    <configuration name="constructor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="yarado-supporter" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/constructor.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="staging_supporter" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="yarado-supporter" />
       <option name="ENV_FILES" value="" />
@@ -107,28 +131,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/archive/supporter.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="uardi_integration" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="yarado-supporter" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/uardi_integration.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -183,11 +185,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.constructor" />
         <item itemvalue="Python.staging_supporter" />
         <item itemvalue="Python.usage_insights" />
         <item itemvalue="Python.uardi_wrapper" />
         <item itemvalue="Python.supporter" />
-        <item itemvalue="Python.uardi_integration" />
       </list>
     </recent_temporary>
   </component>
@@ -206,22 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00015" summary="Added cause analysis!">
-      <option name="closed" value="true" />
-      <created>1719848471359</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1719848471359</updated>
-    </task>
-    <task id="LOCAL-00016" summary="Removed bugs">
-      <option name="closed" value="true" />
-      <created>1719848968403</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1719848968403</updated>
     </task>
     <task id="LOCAL-00017" summary="Removed bugs">
       <option name="closed" value="true" />
@@ -599,7 +585,23 @@
       <option name="project" value="LOCAL" />
       <updated>1725291269479</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="Yarado-Supporter-2 soft launch - fixed some bugs">
+      <option name="closed" value="true" />
+      <created>1725292993489</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1725292993489</updated>
+    </task>
+    <task id="LOCAL-00065" summary="Yarado-Supporter-2 soft launch - fixed some bugs">
+      <option name="closed" value="true" />
+      <created>1725294356810</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1725294356810</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -617,7 +619,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="added logging capabilities" />
     <MESSAGE value="Minor tweaks to code, also added some additional error handling." />
     <MESSAGE value="removed message" />
     <MESSAGE value="Ensured retriggering is possible and added retries to the azure openai calls" />
@@ -642,6 +643,7 @@
     <MESSAGE value="Fixing bug regarding Azure Application Insights" />
     <MESSAGE value="Yarado-Supporter-2 soft launch" />
     <MESSAGE value="Yarado-Supporter-2 soft launch - fixed indent level" />
-    <option name="LAST_COMMIT_MESSAGE" value="Yarado-Supporter-2 soft launch - fixed indent level" />
+    <MESSAGE value="Yarado-Supporter-2 soft launch - fixed some bugs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Yarado-Supporter-2 soft launch - fixed some bugs" />
   </component>
 </project>
