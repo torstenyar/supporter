@@ -75,13 +75,13 @@ async def generate_error_context(client, customer_name, process_name, steps_log,
         "   - 'original_ai_step_description': An AI-generated description of what the step is supposed to do, independent of any specific run.\n"
         "   - 'original_step_payload': The original configuration or parameters for the step as defined in the task file.\n"
         "   These task-run-independent fields provide context about the intended behavior of each step, which is crucial when comparing against what actually happened during execution.\n"
-        "4. Screenshot: An image of the Azure VM screen at the moment the error occurred. This screenshot is a unique feature of the Yarado Client and provides crucial visual context. It can reveal:\n"
+        "4. Screenshot: An image of the Azure VM screen at the moment the error occurred (always of size 1920x1080). This screenshot is a unique feature of the Yarado Client and provides crucial visual context. It can reveal:\n"
         "   - The state of the application or website being interacted with\n"
         "   - Any visible error messages or unexpected UI states\n"
         "   - The presence of pop-ups or system notifications\n"
         "   - The overall desktop environment and any relevant background processes\n"
         "   - Timestamps or other temporal information visible on the screen\n"
-        "   The screenshot should be analyzed in conjunction with the log data to provide a more comprehensive understanding of the error context. It may reveal issues not apparent in the logs alone, such as network disconnections, unexpected application behavior, or system-level issues.\n\n"
+        "   The screenshot should be analyzed in conjunction with the log data to provide a more comprehensive understanding of the error context. It may reveal issues not apparent in the logs alone, such as network disconnections, unexpected application behavior, or system-level issues. Also, very important, is the location in the metadata/debug data. If you know the normal format of the screen is 1920x1080 you might discover where the robot wanted to click by looking at the coords (altough note it might be relative coordinates, not always absolute)\n\n"
         "Structure your response as follows:\n"
         "1. Task Technical Overview: [as before]\n"
         "2. Error Location, Context, and Historical Overview:\n"
@@ -234,13 +234,13 @@ async def perform_cause_analysis(client, customer_name, process_name, steps_log,
         "   - 'original_ai_step_description': An AI-generated description of what the step is supposed to do, independent of any specific run.\n"
         "   - 'original_step_payload': The original configuration or parameters for the step as defined in the task file.\n"
         "   These task-run-independent fields provide context about the intended behavior of each step, which is crucial when comparing against what actually happened during execution.\n"
-        "6. Screenshot: An image of the Azure VM screen at the moment the error occurred. This screenshot is a unique feature of the Yarado Client and provides crucial visual context. It can reveal:\n"
+        "6. Screenshot: An image of the Azure VM screen at the moment the error occurred (always of size 1920x1080). This screenshot is a unique feature of the Yarado Client and provides crucial visual context. It can reveal:\n"
         "   - The state of the application or website being interacted with\n"
         "   - Any visible error messages or unexpected UI states\n"
         "   - The presence of pop-ups or system notifications\n"
         "   - The overall desktop environment and any relevant background processes\n"
         "   - Timestamps or other temporal information visible on the screen\n"
-        "   The screenshot should be analyzed in conjunction with the log data to provide a more comprehensive understanding of the error context. It may reveal issues not apparent in the logs alone, such as network disconnections, unexpected application behavior, or system-level issues.\n\n"
+        "   The screenshot should be analyzed in conjunction with the log data to provide a more comprehensive understanding of the error context. It may reveal issues not apparent in the logs alone, such as network disconnections, unexpected application behavior, or system-level issues. Also, very important, is the location in the metadata/debug data. If you know the normal format of the screen is 1920x1080 you might discover where the robot wanted to click by looking at the coords (altough note it might be relative coordinates, not always absolute)\n\n"
         "OUTPUT:"
         "Structure your response as follows:\n"
         "5. Historical and Similar Error Causes Comparison:\n"
@@ -500,7 +500,7 @@ And here's the restart and solution information:
 {restart_and_solution}
 
 The refined analysis should provide Yarado support staff with a clear, comprehensive understanding of:
-1. Summary of root cause, its technical impact, restart information, and key solution points (3-5 sentences). Mention the step coordinates and step name (or range of coordinates and step names) so your colleagues can easily find the specific step. Also explicitly mention the step coords for the restart location and in which loop the task should be restarted, but only state this if you know this. Restart location you should discover by analysing historical data, but the loop in which you should restart, if we were in a loop, should be deterimined based on the loop in which we were - so not from the historical data as this data could be in other loop row numbers. (NOTE THIS IS A NEW SECTION YOU SHOULD GENERATE).
+1. Summary of root cause, its technical impact, restart information, and key solution points (3-5 sentences). Mention the step coordinates and step name (or range of coordinates and step names) so your colleagues can easily find the specific step. Also explicitly mention the step coords for the restart location and in which loop the task should be restarted, but only state this if you know this. Restart location you should discover by analysing historical data, but the loop in which you should restart, if we were in a loop, should be deterimined based on the loop in which we were - so not from the historical data as this data could be in other loop row numbers. BE AS EXPLICIT AS POSSIBLE IN THIS SECTION! (NOTE THIS IS A NEW SECTION YOU SHOULD GENERATE).
 2. The task's technical overview
 3. The error's location, context, and short historical overview (if present)
 4. The observed behavior
@@ -541,12 +541,12 @@ async def format_for_slack(client, combined_analysis):
             10. Restart Information
             11. Solution Recommendations
 
-The user will provide you with a JSON scheme that you strictly follow and fill in. Within this JSON scheme the user will give some dummy examples on how the text could be formatted. Use this as inspiration when transforming the current text into this schema. I want to remind you to NEVER use double stars (**) in the formatting and always start a section with a bolded (single star) sentence representing the header - as shown in the examples. You are free to make up the words in this representative header of the section.
+The user will provide you with a JSON scheme that you strictly follow and fill in. Within this JSON scheme the user will give some dummy examples on how the text could be formatted. Use this as inspiration when transforming the current text into this schema. I want to remind you to NEVER use double stars (**) in the formatting and always start a section with a bolded (single star) sentence representing the header - as shown in the examples. You are free to make up the words in this representative header of the section. ONLY FILL IN THE BLOCK IF THE CORRESPONDING CONTENT IS IN THE INPUT DATA, OTHERWISE LEAVE A EMPTY STRING.
             """
         },
         {
             "role": "user",
-            "content": f"Here's the combined analysis:\n\n{combined_analysis}\n\nPlease format this analysis into Slack JSON blocks. Determine for yourself which content needs to be placed in which JSON block. Use appropriate formatting such as bold for headers, bullet points for lists, and code blocks for any code or variable names. Ensure the message is well-structured and easy to read in Slack. The output should be valid JSON that can be directly used in a Slack message. The formatting should also include subtle use of emojis where appropriate."
+            "content": f"Here's the combined analysis:\n\n{combined_analysis}\n\nPlease format this analysis into Slack JSON blocks. Determine for yourself which content needs to be placed in which JSON block. Use appropriate formatting such as bold for headers, bullet points for lists, and code blocks for any code or variable names. Ensure the message is well-structured and easy to read in Slack. The output should be valid JSON that can be directly used in a Slack message. The formatting should also include subtle use of emojis where appropriate. However, this change of formatting and styling is the only thing you may do - never change the actual content of the text."
         }
     ]
 
