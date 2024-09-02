@@ -578,7 +578,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Summary of the analysis with critical information."
+                                    "description": "Summary of the analysis with critical information.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -608,7 +610,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Detailed technical overview of the task."
+                                    "description": "Detailed technical overview of the task.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -638,7 +642,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Description of where the error occurred, the context, and any relevant historical data."
+                                    "description": "Description of where the error occurred, the context, and any relevant historical data.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -668,7 +674,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Description of what was observed during the error event."
+                                    "description": "Description of what was observed during the error event.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -698,7 +706,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Description of what should have happened if no error occurred."
+                                    "description": "Description of what should have happened if no error occurred.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -728,7 +738,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Comparison of the current error with historical and similar errors."
+                                    "description": "Comparison of the current error with historical and similar errors.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -758,7 +770,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Detailed causal chain analysis listing the steps leading to the error."
+                                    "description": "Detailed causal chain analysis listing the steps leading to the error.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -788,7 +802,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Summary of the root cause and its impact on the system."
+                                    "description": "Summary of the root cause and its impact on the system.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -818,7 +834,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Probability assessment if multiple causes are plausible."
+                                    "description": "Probability assessment if multiple causes are plausible.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -848,7 +866,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Information on where to restart the task to recover from the error."
+                                    "description": "Information on where to restart the task to recover from the error.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -878,7 +898,9 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Recommendations for solving the issue and preventing future occurrences."
+                                    "description": "Recommendations for solving the issue and preventing future occurrences.",
+                                    "minLength": 1,
+                                    "maxLength": 3000
                                 }
                             },
                             "required": ["type", "text"],
@@ -889,8 +911,19 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                     "additionalProperties": False
                 }
             },
-            "required": ["block1", "block3", "block5", "block7", "block9", "block11", "block13", "block15", "block17",
-                         "block19", "block21"],
+            "required": [
+                "block1",
+                "block3",
+                "block5",
+                "block7",
+                "block9",
+                "block11",
+                "block13",
+                "block15",
+                "block17",
+                "block19",
+                "block21"
+            ],
             "additionalProperties": False
         }
     }
@@ -937,6 +970,7 @@ def split_text_into_blocks(text, block_type="section", max_length=3000):
 
     return blocks
 
+
 def assemble_blocks(ai_output):
     """Convert the AI output into a Slack message format and return the summary block separately."""
     slack_message = {"blocks": []}
@@ -947,7 +981,7 @@ def assemble_blocks(ai_output):
     for key in sorted(ai_output.keys(), key=lambda x: int(x.replace('block', ''))):
         block = ai_output[key]
 
-        if block['type'] == 'section':
+        if block['type'] == 'section' and 'text' in block and 'text' in block['text']:
             # Check the length of the block's text content
             block_text = block['text']['text']
             if len(block_text) > max_length:
@@ -981,4 +1015,3 @@ def assemble_blocks(ai_output):
             slack_message['blocks'].append({"type": "divider"})
 
     return slack_message, summary_text
-
