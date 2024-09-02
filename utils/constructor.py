@@ -892,79 +892,29 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
     )
 
 
-def split_text_into_blocks(text, block_type="section", max_length=3000):
-    """Split text into multiple blocks if it exceeds the max_length."""
-    blocks = []
-    while len(text) > max_length:
-        # Find the nearest paragraph or sentence break before the limit
-        split_index = text.rfind("\n", 0, max_length)
-        if split_index == -1:  # If no newline, try finding a sentence end
-            split_index = text.rfind(". ", 0, max_length) + 1
-        if split_index == -1 or split_index == 0:  # If no sentence end, split at max_length
-            split_index = max_length
-
-        # Create a block for the current portion
-        blocks.append({
-            "type": block_type,
-            "text": {
-                "type": "mrkdwn",
-                "text": text[:split_index].strip()
-            }
-        })
-
-        # Update the text to the remaining portion
-        text = text[split_index:].strip()
-
-    # Add the remaining text as the last block
-    blocks.append({
-        "type": block_type,
-        "text": {
-            "type": "mrkdwn",
-            "text": text
-        }
-    })
-
-    return blocks
-
-
 def assemble_blocks(ai_output):
-    """Convert the AI output into a Slack message format and return the summary block separately."""
+    """Convert the AI output into a Slack message format and capture the summary block."""
     slack_message = {"blocks": []}
-    summary_text = ""  # To store the content of the summary block
-    max_length = 3000  # Maximum character length for Slack blocks
+    summary_text = ""  # Initialize to store the content of the summary block
 
     # Iterate through the blocks and build the message
     for key in sorted(ai_output.keys(), key=lambda x: int(x.replace('block', ''))):
         block = ai_output[key]
 
+        # Directly add the section block to the message
         if block['type'] == 'section' and 'text' in block and 'text' in block['text']:
-            # Check the length of the block's text content
-            block_text = block['text']['text']
-            if len(block_text) > max_length:
-                # If the block text exceeds the limit, split it into multiple blocks
-                split_blocks = split_text_into_blocks(block_text, block_type="section", max_length=max_length)
-                slack_message['blocks'].extend(split_blocks)
-            else:
-                # Add the section block to the message
-                slack_message['blocks'].append({
-                    "type": block['type'],
-                    "text": {
-                        "type": block['text']['type'],
-                        "text": block['text']['text']
-                    }
-                })
+            # Capture the summary block's content (assuming block1 is the summary)
+            if key == "block1":
+                summary_text = block['text']['text']
 
-            # Capture the summary block's content
-            if key == "block1":  # Assuming block1 is the summary block
-                # Scenario 1: Standard text format
-                if 'text' in block and 'text' in block['text']:
-                    summary_text = block['text']['text']
-                # Scenario 2: Check for any other possible keys or structures
-                elif 'fields' in block and isinstance(block['fields'], list):
-                    summary_text = "\n".join([field['text'] for field in block['fields'] if 'text' in field])
-                # Scenario 3: Just take the whole block content as fallback
-                else:
-                    summary_text = str(block)
+            # Add the section block to the Slack message
+            slack_message['blocks'].append({
+                "type": block['type'],
+                "text": {
+                    "type": block['text']['type'],
+                    "text": block['text']['text']
+                }
+            })
 
         # Add a divider after each section block (except the last one)
         if key != list(ai_output.keys())[-1]:

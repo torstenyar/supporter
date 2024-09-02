@@ -58,7 +58,7 @@ def send_message(client, channel, thread_ts, content, as_text=True, fallback_con
     except SlackApiError as e:
         logging.error(f"Error sending message: {e.response['error']}")
         if e.response['error'] == "invalid_blocks":
-            print(f'Invalid blocks were: {json.dumps(blocks, indent=2)}')
+            logging.error(f'Invalid blocks were: {json.dumps(blocks, indent=2)}')
             # Send the summary with an apology if blocks are invalid
             apology_message = (
                 f":warning: Apologies, the detailed analysis could not be formatted correctly.\n"
