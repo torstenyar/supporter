@@ -976,9 +976,9 @@ def assemble_blocks(ai_output):
                 else:
                     summary_text = str(block)
 
-            # Add a divider after each section block (except the last one)
-            if key != list(ai_output.keys())[-1]:
-                slack_message['blocks'].append({"type": "divider"})
+        # Add a divider after each section block (except the last one)
+        if key != list(ai_output.keys())[-1]:
+            slack_message['blocks'].append({"type": "divider"})
 
     return slack_message, summary_text
 

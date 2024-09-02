@@ -26,12 +26,12 @@ from utils.post_process_and_update import (
 )
 
 # Uncomment below for local testing
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+#load_dotenv()
 
-# Configure logging
+# Configure logging and set it to info
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define the list of allowed channel IDs and valid reactions based on environment
