@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Set the working directory to the root of the project
-WORKDIR /app
+WORKDIR /
 
 # Copy the requirements.txt first to leverage Docker cache
 COPY requirements.txt /
