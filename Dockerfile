@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Set the working directory to /app
-WORKDIR /app
+WORKDIR /
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,10 +24,6 @@ COPY . .
 ENV PYTHONUNBUFFERED=1
 ENV YARADO_ENVIRONMENT=production
 ENV PORT=80
-
-# Create a non-root user and switch to it
-RUN useradd -m appuser
-USER appuser
 
 # Expose the port for the application
 EXPOSE 80
