@@ -4,21 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Fixing bug regarding Azure Application Insights">
-      <change afterPath="$PROJECT_DIR$/utils/ai_utils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/fetch_data.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/post_process_and_update.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Yarado-Supporter-2 soft launch">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/azure_openai_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/azure_openai_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/staging_supporter.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/supporter.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/uardi_integration.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -218,38 +207,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00010" summary="Generate error descriptions">
-      <option name="closed" value="true" />
-      <created>1719591140857</created>
-      <option name="number" value="00010" />
-      <option name="presentableId" value="LOCAL-00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1719591140857</updated>
-    </task>
-    <task id="LOCAL-00011" summary="Generate error descriptions">
-      <option name="closed" value="true" />
-      <created>1719591560689</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1719591560689</updated>
-    </task>
-    <task id="LOCAL-00012" summary="Removed bugs">
-      <option name="closed" value="true" />
-      <created>1719818249512</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1719818249512</updated>
-    </task>
-    <task id="LOCAL-00013" summary="Removed bugs">
-      <option name="closed" value="true" />
-      <created>1719818849204</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1719818849204</updated>
     </task>
     <task id="LOCAL-00014" summary="Added cause analysis!">
       <option name="closed" value="true" />
@@ -611,7 +568,39 @@
       <option name="project" value="LOCAL" />
       <updated>1724849286241</updated>
     </task>
-    <option name="localTasksCounter" value="59" />
+    <task id="LOCAL-00059" summary="Yarado-Supporter-2 soft launch">
+      <option name="closed" value="true" />
+      <created>1725289962061</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1725289962061</updated>
+    </task>
+    <task id="LOCAL-00060" summary="Yarado-Supporter-2 soft launch">
+      <option name="closed" value="true" />
+      <created>1725290295414</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1725290295414</updated>
+    </task>
+    <task id="LOCAL-00061" summary="Yarado-Supporter-2 soft launch">
+      <option name="closed" value="true" />
+      <created>1725290354611</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1725290354611</updated>
+    </task>
+    <task id="LOCAL-00062" summary="Yarado-Supporter-2 soft launch">
+      <option name="closed" value="true" />
+      <created>1725290575862</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1725290575862</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -629,7 +618,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Ensured more natural description" />
     <MESSAGE value="Tweaked the output format a bit!" />
     <MESSAGE value="added logging capabilities" />
     <MESSAGE value="Minor tweaks to code, also added some additional error handling." />
@@ -654,6 +642,7 @@
     <MESSAGE value="Add application insights" />
     <MESSAGE value="Added health check" />
     <MESSAGE value="Fixing bug regarding Azure Application Insights" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixing bug regarding Azure Application Insights" />
+    <MESSAGE value="Yarado-Supporter-2 soft launch" />
+    <option name="LAST_COMMIT_MESSAGE" value="Yarado-Supporter-2 soft launch" />
   </component>
 </project>

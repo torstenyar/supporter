@@ -1,20 +1,13 @@
 # Use the official Python image
 FROM python:3.9-slim
 
-# Set the working directory to /app
+# Set the working directory to the root of the project
 WORKDIR /
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy the requirements.txt first to leverage Docker cache
-COPY requirements.txt .
+COPY requirements.txt /
 
-# Install the required Python packages
+# Install the required packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
@@ -25,7 +18,7 @@ ENV PYTHONUNBUFFERED=1
 ENV YARADO_ENVIRONMENT=production
 ENV PORT=80
 
-# Expose the port for the application
+# Expose the port for the application and health checks
 EXPOSE 80
 
 # Run the Flask application
