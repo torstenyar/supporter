@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Yarado-Supporter-2 soft launch">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Yarado-Supporter-2 soft launch - fixed indent level">
+      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -207,14 +206,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00014" summary="Added cause analysis!">
-      <option name="closed" value="true" />
-      <created>1719846312837</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1719846312837</updated>
     </task>
     <task id="LOCAL-00015" summary="Added cause analysis!">
       <option name="closed" value="true" />
@@ -600,7 +591,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725290575862</updated>
     </task>
-    <option name="localTasksCounter" value="63" />
+    <task id="LOCAL-00063" summary="Yarado-Supporter-2 soft launch - fixed indent level">
+      <option name="closed" value="true" />
+      <created>1725291269479</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1725291269479</updated>
+    </task>
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -618,7 +617,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Tweaked the output format a bit!" />
     <MESSAGE value="added logging capabilities" />
     <MESSAGE value="Minor tweaks to code, also added some additional error handling." />
     <MESSAGE value="removed message" />
@@ -643,6 +641,7 @@
     <MESSAGE value="Added health check" />
     <MESSAGE value="Fixing bug regarding Azure Application Insights" />
     <MESSAGE value="Yarado-Supporter-2 soft launch" />
-    <option name="LAST_COMMIT_MESSAGE" value="Yarado-Supporter-2 soft launch" />
+    <MESSAGE value="Yarado-Supporter-2 soft launch - fixed indent level" />
+    <option name="LAST_COMMIT_MESSAGE" value="Yarado-Supporter-2 soft launch - fixed indent level" />
   </component>
 </project>

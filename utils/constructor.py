@@ -560,27 +560,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
             "properties": {
                 "block1": {
                     "type": "object",
-                    "description": "Example:>>>🚨 *Summary of root cause, its technical impact, restart information, and key solution points.*\n*At step `12,3` named \"Perform Action\" in the `example_task` task*, an error occurred due to a missing configuration file, which halted the workflow. Restarting the task from this step after resolving the configuration issue should restore functionality.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing the summary text.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Summary of the analysis with critical information.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🚨 *Summary of root cause, its technical impact, restart information, and key solution points.*\n*At step `12,3` named \"Perform Action\" in the `example_task` task*, an error occurred due to a missing configuration file, which halted the workflow. Restarting the task from this step after resolving the configuration issue should restore functionality."
                                 }
                             },
                             "required": ["type", "text"],
@@ -592,27 +588,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block3": {
                     "type": "object",
-                    "description": "Example:>>>🔍 *Technical overview.*\nThe `example_task` task automates various actions within the system, involving 50 steps including data validation, file processing, and API calls.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing the task technical overview.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Detailed technical overview of the task.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🔍 *Technical overview.*\nThe `example_task` task automates various actions within the system, involving 50 steps including data validation, file processing, and API calls."
                                 }
                             },
                             "required": ["type", "text"],
@@ -624,27 +616,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block5": {
                     "type": "object",
-                    "description": "Example:>>>🗺 *The error's location, context, and short historical overview (if present).* The error occurred during the \"Process Data\" subtask at step `14,5`, which failed due to a timeout error. This step is critical for data processing, and historically, similar errors have occurred due to network instability.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing error location, context, and historical overview.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Description of where the error occurred, the context, and any relevant historical data.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🗺 *The error's location, context, and short historical overview (if present).* The error occurred during the \"Process Data\" subtask at step `14,5`, which failed due to a timeout error. This step is critical for data processing, and historically, similar errors have occurred due to network instability."
                                 }
                             },
                             "required": ["type", "text"],
@@ -656,27 +644,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block7": {
                     "type": "object",
-                    "description": "Example:>>>👀 *The observed behavior.*\nDuring the execution of step `14,5`, the system encountered a timeout error, resulting in incomplete data processing.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing observed behavior information.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Description of what was observed during the error event.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "👀 *The observed behavior.*\nDuring the execution of step `14,5`, the system encountered a timeout error, resulting in incomplete data processing."
                                 }
                             },
                             "required": ["type", "text"],
@@ -688,27 +672,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block9": {
                     "type": "object",
-                    "description": "Example:>>>🎯 *The expected behavior.*\nThe task should have successfully processed the data without encountering any timeout errors, completing all steps as expected.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing expected behavior information.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Description of what should have happened if no error occurred.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🎯 *The expected behavior.*\nThe task should have successfully processed the data without encountering any timeout errors, completing all steps as expected."
                                 }
                             },
                             "required": ["type", "text"],
@@ -720,27 +700,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block11": {
                     "type": "object",
-                    "description": "Example:>>>📊 *Historical and Similar Error Causes Comparison.*\nHistorically, similar timeout errors have occurred due to network issues during data processing steps. Previous incidents were resolved by improving network stability and adjusting timeout settings.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object comparing historical and similar errors.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Comparison of the current error with historical and similar errors.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "📊 *Historical and Similar Error Causes Comparison.*\nHistorically, similar timeout errors have occurred due to network issues during data processing steps. Previous incidents were resolved by improving network stability and adjusting timeout settings."
                                 }
                             },
                             "required": ["type", "text"],
@@ -752,27 +728,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block13": {
                     "type": "object",
-                    "description": "Example:>>>🔗 *The causal chain leading to the error.*\n- `Step 12.2`: Data validation completed successfully.\n- `Step 14.1`: API call initiated, no issues detected.\n- `Step 14.5`: Timeout error occurred during data processing.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object detailing the causal chain leading to the error.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Detailed causal chain analysis listing the steps leading to the error.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🔗 *The causal chain leading to the error.*\n- `Step 12.2`: Data validation completed successfully.\n- `Step 14.1`: API call initiated, no issues detected.\n- `Step 14.5`: Timeout error occurred during data processing."
                                 }
                             },
                             "required": ["type", "text"],
@@ -784,27 +756,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block15": {
                     "type": "object",
-                    "description": "Example:>>>🔍 *Detailed root cause analysis and its technical impact.*\nThe root cause of the error is identified as a timeout during data processing, which is a recurrent issue due to network instability. This impacts the reliability of the task and could lead to data inconsistencies.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object summarizing the root cause and its technical impact.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Summary of the root cause and its impact on the system.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🔍 *Detailed root cause analysis and its technical impact.*\nThe root cause of the error is identified as a timeout during data processing, which is a recurrent issue due to network instability. This impacts the reliability of the task and could lead to data inconsistencies."
                                 }
                             },
                             "required": ["type", "text"],
@@ -816,27 +784,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block17": {
                     "type": "object",
-                    "description": "Example:>>>🔮 *Probability assessment.*\nBased on the available data, the likelihood of a network issue causing the timeout is approximately 80%, while the possibility of a coding error is around 20%.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object summarizing the probability assessment.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Probability assessment if multiple causes are plausible.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🔮 *Probability assessment.*\nBased on the available data, the likelihood of a network issue causing the timeout is approximately 80%, while the possibility of a coding error is around 20%."
                                 }
                             },
                             "required": ["type", "text"],
@@ -848,27 +812,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block19": {
                     "type": "object",
-                    "description": "Example:>>>🔄 *Restart information.*\nTo resolve the issue, restart the task from step `14,5` after ensuring that network stability is improved.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing restart information.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Information on where to restart the task to recover from the error.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "🔄 *Restart information.*\nTo resolve the issue, restart the task from step `14,5` after ensuring that network stability is improved."
                                 }
                             },
                             "required": ["type", "text"],
@@ -880,27 +840,23 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
                 },
                 "block21": {
                     "type": "object",
-                    "description": "Example:>>>💡 *Solution recommendations.*\n1. *Network Stability:* Improve the network infrastructure to prevent similar timeout issues.\n2. *Error Handling:* Implement better error handling for timeout scenarios to allow for automatic retries.\n3. *Logging Enhancements:* Increase the detail in logs to provide better insights during troubleshooting.>>>",
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of block element.",
-                            "enum": ["section"]
+                            "enum": ["section"],
+                            "description": "Type of block element."
                         },
                         "text": {
                             "type": "object",
-                            "description": "Text object containing solution recommendations.",
                             "properties": {
                                 "type": {
                                     "type": "string",
-                                    "description": "The type of text formatting.",
-                                    "enum": ["mrkdwn"]
+                                    "enum": ["mrkdwn"],
+                                    "description": "The type of text formatting."
                                 },
                                 "text": {
                                     "type": "string",
-                                    "description": "Recommendations for solving the issue and preventing future occurrences.",
-                                    "minLength": 1,
-                                    "maxLength": 3000
+                                    "description": "💡 *Solution recommendations.*\n1. *Network Stability:* Improve the network infrastructure to prevent similar timeout issues.\n2. *Error Handling:* Implement better error handling for timeout scenarios to allow for automatic retries.\n3. *Logging Enhancements:* Increase the detail in logs to provide better insights during troubleshooting."
                                 }
                             },
                             "required": ["type", "text"],
