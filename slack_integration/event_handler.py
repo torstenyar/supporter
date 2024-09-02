@@ -1,14 +1,28 @@
 import logging
 import json
 import os
-from azure.servicebus import ServiceBusClient, ServiceBusMessage
-from slack_integration.message_handler import fetch_message, send_message
+import asyncio
+from datetime import datetime, timedelta
+from openai import OpenAIError
+from slack_sdk.errors import SlackApiError
+from requests import RequestException
+from slack_integration.message_handler import fetch_message, send_message, update_progress
 from slack_integration.slack_client import get_bot_user_id
-from utils.azure_openai_client import initialize_client
-from utils.supporter import (
-    load_log_file, load_screenshot, determine_point_of_failure,
-    load_log_preceding_steps, generate_error_description,
-    perform_cause_analysis, extract_data_from_message
+from azure.search.documents.aio import SearchClient
+from azure.core.credentials import AzureKeyCredential
+from utils.fetch_data import (
+    load_screenshot, load_log_file, determine_point_of_failure,
+    load_log_preceding_steps, extract_data_from_message, get_uardi_context,
+    find_json_by_key_value, search_similar_errors, create_combined_error_overview,
+    merge_log_and_uardi
+)
+from utils.constructor import (
+    generate_error_context, perform_cause_analysis,
+    generate_restart_information_and_solution, combine_and_refine_analysis,
+    format_for_slack, summarize_ai_cause, assemble_blocks
+)
+from utils.post_process_and_update import (
+    send_task_run_id_to_yarado, send_supporter_data_to_uardi
 )
 
 # Uncomment below for local testing
@@ -17,8 +31,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# In-memory dictionary to track reactions per user, message, and emoji
-reaction_tracker = {}
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define the list of allowed channel IDs and valid reactions based on environment
 CHANNEL_CONFIG = {
@@ -31,213 +45,400 @@ REACTION_CONFIG = {
     'production': ['yara-sup-1', 'yara-sup-backup']  # Production reactions
 }
 
-# Azure Service Bus configuration (same for both environments)
-SERVICEBUS_CONNECTION_STR = os.environ['SERVICEBUS_CONNECTION_STR']
-SUPPORTER_DATA_QUEUE = os.environ['SUPPORTER_DATA_QUEUE']
-SUPPORTER_TRIGGERED = os.environ['SUPPORTER_TRIGGERED']
+# File-based storage for message states
+MESSAGE_STATE_FILE = 'message_states.json'
 
 
-def send_supporter_data_to_uardi(data):
-    """
-    Sends the given data to the SUPPORTER_DATA_QUEUE in Azure Service Bus.
-    """
+def load_message_states():
+    if os.path.exists(MESSAGE_STATE_FILE):
+        with open(MESSAGE_STATE_FILE, 'r') as f:
+            states = json.load(f)
+            # Convert string timestamps back to datetime objects and ensure user_reactions is a set
+            for key, state in states.items():
+                state['last_processed'] = datetime.fromisoformat(state['last_processed'])
+                state['user_reactions'] = set(state.get('user_reactions', []))
+            return states
+    return {}
+
+
+def save_message_states(states):
+    # Convert datetime objects to ISO format strings for JSON serialization
+    # Convert user_reactions set to list for JSON serialization
+    serializable_states = {
+        key: {
+            **state,
+            'last_processed': state['last_processed'].isoformat(),
+            'user_reactions': list(state['user_reactions'])
+        } for key, state in states.items()
+    }
+    with open(MESSAGE_STATE_FILE, 'w') as f:
+        json.dump(serializable_states, f)
+
+
+def clean_old_message_states(states):
+    three_days_ago = datetime.now() - timedelta(days=3)
+    return {
+        key: state for key, state in states.items()
+        if state['last_processed'] > three_days_ago
+    }
+
+
+# Load existing message states
+message_states = load_message_states()
+
+
+async def send_error_message(slack_client, channel_id, message_timestamp, error_message):
     try:
-        servicebus_client = ServiceBusClient.from_connection_string(conn_str=SERVICEBUS_CONNECTION_STR)
-        with servicebus_client:
-            sender = servicebus_client.get_queue_sender(queue_name=SUPPORTER_DATA_QUEUE)
-            with sender:
-                message = ServiceBusMessage(json.dumps(data))
-                sender.send_messages(message)
-                logging.info("Sent message to SUPPORTER_DATA_QUEUE")
+        send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
     except Exception as e:
-        logging.error(f"Failed to send message to queue: {e}")
+        logging.error(f"Failed to send error message: {e}")
 
 
-def send_task_run_id_to_yarado(data):
-    """
-    Sends the given data to the SUPPORTER_TRIGGERED in Azure Service Bus.
-    """
-    try:
-        servicebus_client = ServiceBusClient.from_connection_string(conn_str=SERVICEBUS_CONNECTION_STR)
-        with servicebus_client:
-            sender = servicebus_client.get_queue_sender(queue_name=SUPPORTER_TRIGGERED)
-            with sender:
-                message = ServiceBusMessage(json.dumps(data))
-                sender.send_messages(message)
-                logging.info("Sent task_run_id to SUPPORTER_TRIGGERED")
-    except Exception as e:
-        logging.error(f"Failed to send message to queue: {e}")
-
-
-def handle_event(data, environment, slack_client):
-    global reaction_tracker
+async def handle_event(data, environment, slack_client, openai_client):
+    global message_states
     event = data.get('event', {})
     logging.info(f"Received event in {environment} environment: {event}")
 
+    # Fetch bot's user ID
     bot_user_id = get_bot_user_id(slack_client)
-    az_client = initialize_client()
 
-    allowed_channels = CHANNEL_CONFIG[environment]
-    valid_reactions = REACTION_CONFIG[environment]
+    # Get the allowed channels and valid reactions for the given environment
+    allowed_channels = CHANNEL_CONFIG.get(environment, [])
+    valid_reactions = REACTION_CONFIG.get(environment, [])
 
-    if event.get('type') == 'reaction_added' and event.get('reaction') in valid_reactions:
+    # Validate the Slack event
+    try:
+        validate_slack_event(event)
+    except ValueError as ve:
+        logging.error(f"Invalid Slack event: {ve}")
+        return
+
+    if event.get('type') in ['reaction_added', 'reaction_removed'] and event.get('reaction') in valid_reactions:
         user_id = event.get('user')
         reaction = event.get('reaction')
+
+        # Skip events triggered by the bot itself
         if user_id == bot_user_id:
             logging.info("Skipping event triggered by the bot itself.")
             return
 
         channel_id = event['item']['channel']
         message_timestamp = event['item']['ts']
-        event_timestamp = event['event_ts']
 
+        # Ignore reactions in non-allowed channels
         if channel_id not in allowed_channels:
             logging.info("Reaction added in a non-allowed channel. Ignoring the event.")
             return
 
-        logging.info(
-            f"Handling reaction_added event for channel {channel_id} and timestamp {message_timestamp} and event_timestamp {event_timestamp}")
+        # Get or create message state
+        state_key = f"{channel_id}:{message_timestamp}"
+        message_state = message_states.get(state_key, {
+            'last_processed': datetime.min,
+            'processing': False,
+            'user_reactions': set()
+        })
 
-        if reaction_tracker.get((channel_id, message_timestamp, user_id, reaction)):
-            logging.info("This reaction has already been processed for this user and emoji.")
-            return
-
-        reaction_tracker[(channel_id, message_timestamp, user_id, reaction)] = True
-
-        message = fetch_message(slack_client, channel_id, message_timestamp)
-        if message:
-            logging.info("Fetched message!")
-
-            client_name, task_name, prio, run_id = extract_data_from_message(message)
-            logging.info(f"Client Name: {client_name}")
-            logging.info(f"Task Name: {task_name}")
-            logging.info(f"Prio: {prio}")
-            logging.info(f"Run ID: {run_id}")
-
-            if not all([client_name, task_name, run_id]):
-                error_message = ":warning: Error: I was unable to extract the necessary information from the message :cry:.\n"
-                if not client_name:
-                    error_message += "- Client Name could not be found.\n"
-                if not task_name:
-                    error_message += "- Task Name could not be found.\n"
-                if not run_id:
-                    error_message += "- Run ID could not be found."
-
-                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                logging.error(error_message)
+        if event['type'] == 'reaction_added':
+            if user_id in message_state['user_reactions']:
+                logging.info("This reaction has already been processed for this user.")
                 return
 
-            if '.yrd' in task_name:
-                error_message = (
-                    ":confused: Warning: It looks like this error originates from a user/manual triggered run. "
-                    "Currently, I am unable to handle these types of error and am solely focused on cloud orchestrated runs. "
-                    "If you believe this is a mistake, please contact support (aka Torsten).")
-                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                logging.error(error_message)
-                return
+            message_state['user_reactions'].add(user_id)
 
-            initial_message = ("Thanks for your request! I will take a moment to analyze the cause of this error. Will "
-                               "come back to you ASAP :hourglass_flowing_sand:")
-            send_message(slack_client, channel_id, message_timestamp, initial_message, as_text=True)
+            # Check if we should process this message
+            if (not message_state['processing'] and
+                    (datetime.now() - message_state['last_processed']) > timedelta(minutes=5)):
 
-            log_file = load_log_file(run_id)
-            if log_file is None:
-                error_message = ":warning: Error: Unable to fetch the log file. Please try again later."
-                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                return
-            elif log_file == "INVALID_JSON":
-                error_message = ":warning: Error: At this moment only JSON formatted log files are supported."
-                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                return
+                message_state['processing'] = True
+                message_states[state_key] = message_state
+                save_message_states(message_states)
 
-            screenshot = load_screenshot(run_id)
-            if screenshot is None:
-                error_message = ":warning: Error: Unable to fetch the screenshot. Please try again later."
-                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                return
-            elif screenshot == "INVALID_IMAGE":
-                error_message = ":warning: Error: The screenshot is not a valid image."
-                send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                return
-
-            point_of_failure_descr, failed_step_id = determine_point_of_failure(log_file)
-            preceding_steps_log = load_log_preceding_steps(log_file, failed_step_id, steps_to_include=10)
-
-            retry_count = 0
-            max_retries = 3
-            while retry_count < max_retries:
                 try:
-                    error_description = generate_error_description(az_client, client_name, task_name,
-                                                                   point_of_failure_descr,
-                                                                   preceding_steps_log, screenshot)
-                    cause_analysis = perform_cause_analysis(az_client, client_name, task_name, preceding_steps_log,
-                                                            screenshot,
-                                                            error_description)
+                    await process_message(event, environment, slack_client, openai_client)
+                finally:
+                    message_state['processing'] = False
+                    message_state['last_processed'] = datetime.now()
+                    message_states[state_key] = message_state
+                    save_message_states(message_states)
 
-                    blocks_analysis = json.dumps([
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": "*:memo: _What went wrong?_*"
-                            }
-                        },
-                        json.loads(error_description),
-                        {
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": "*:mag: _Why did it go wrong? What led me to believe this is the case?_*"
-                            }
-                        },
-                        json.loads(cause_analysis)
-                    ])
+        elif event['type'] == 'reaction_removed':
+            message_state['user_reactions'].discard(user_id)
+            message_states[state_key] = message_state
+            save_message_states(message_states)
 
-                    try:
-                        send_message(slack_client, channel_id, message_timestamp, blocks_analysis, as_text=False)
-                    except Exception as e:
-                        logging.error(f"Error sending message: {str(e)}")
-                        logging.error(f"Attempted to send blocks: {blocks_analysis}")
+    else:
+        logging.info(f"Received unhandled event type: {event.get('type')}")
 
-                    supporter_data = {
-                        "task_run_id": run_id,
-                        "task_name": task_name,
-                        "organisation_name": client_name,
-                        "step_id_pof": failed_step_id,
-                        "ai_cause": json.loads(cause_analysis)['text']['text'],
-                        "ai_description": json.loads(error_description)['text']['text']
-                    }
+    # Clean old message states
+    message_states = clean_old_message_states(message_states)
+    save_message_states(message_states)
 
-                    yarado_data = {
-                        "task_run_id": run_id
-                    }
 
-                    if environment == 'production':  # Send data only in production mode
-                        send_supporter_data_to_uardi(supporter_data)
-                        send_task_run_id_to_yarado(yarado_data)
+def validate_slack_event(event):
+    required_fields = ['type', 'user', 'reaction', 'item']
+    if not all(field in event for field in required_fields):
+        raise ValueError("Invalid Slack event: missing required fields")
 
-                    break
+    if event['type'] not in ['reaction_added', 'reaction_removed']:
+        raise ValueError(f"Unsupported event type: {event['type']}")
 
-                except Exception as e:
-                    logging.error(f"Failed to send message: {e}. Retry {retry_count + 1}/{max_retries}")
-                    retry_count += 1
-                    if retry_count == max_retries:
-                        error_message = (":warning: Error: Unable to send the analysis message after multiple "
-                                         "attempts. Please try again later.")
-                        send_message(slack_client, channel_id, message_timestamp, error_message, as_text=True)
-                        return
+    if 'channel' not in event['item'] or 'ts' not in event['item']:
+        raise ValueError("Invalid Slack event: missing item details")
 
-    elif event.get('type') == 'reaction_removed' and event.get('reaction') in valid_reactions:
-        user_id = event.get('user')
-        reaction = event.get('reaction')
-        if user_id == bot_user_id:
-            logging.info("Skipping event triggered by the bot itself.")
+
+async def process_message(event, environment, slack_client, openai_client):
+    channel_id = event['item']['channel']
+    message_timestamp = event['item']['ts']
+
+    try:
+        # Fetch the original message
+        message = fetch_message(slack_client, channel_id, message_timestamp)
+        if not message:
+            raise ValueError("Failed to fetch the original message")
+
+        logging.info("Fetched message successfully!")
+
+        # Extract necessary data from the message
+        client_name, task_name, prio, run_id = extract_data_from_message(message)
+        logging.info(f"Client Name: {client_name}, Task Name: {task_name}, Prio: {prio}, Run ID: {run_id}")
+
+        # Handle missing information
+        if not all([client_name, task_name, run_id]):
+            error_message = ":warning: Error: I was unable to extract the necessary information from the message :cry:.\n"
+            if not client_name:
+                error_message += "- Client Name could not be found.\n"
+            if not task_name:
+                error_message += "- Task Name could not be found.\n"
+            if not run_id:
+                error_message += "- Run ID could not be found."
+            await send_error_message(slack_client, channel_id, message_timestamp, error_message)
             return
 
-        channel_id = event['item']['channel']
-        message_timestamp = event['item']['ts']
+        # Handle specific task name cases
+        if '.yrd' in task_name:
+            error_message = (
+                ":confused: Warning: It looks like this error originates from a user/manual triggered run. "
+                "Currently, I am unable to handle these types of errors and am solely focused on cloud orchestrated runs. "
+                "If you believe this is a mistake, please contact support (aka Torsten).")
+            await send_error_message(slack_client, channel_id, message_timestamp, error_message)
+            return
 
-        logging.info(f"Handling reaction_removed event for channel {channel_id} and timestamp {message_timestamp}")
+        # Send initial response to the user
+        initial_message = ("Thanks for your request! I will take a moment to analyze the cause of this error. "
+                           "Will come back to you ASAP :hourglass_flowing_sand:")
+        initial_response = send_message(slack_client, channel_id, message_timestamp, initial_message, as_text=True)
+        progress_message_ts = initial_response['ts']
 
-        if reaction_tracker.get((channel_id, message_timestamp, user_id, reaction)):
-            del reaction_tracker[(channel_id, message_timestamp, user_id, reaction)]
+        # Stage: Fetch Data
+        update_progress(slack_client, channel_id, progress_message_ts, 10, thread_ts=message_timestamp,
+                        stage="fetch_data")
+        log_file, screenshot = await asyncio.gather(
+            load_log_file(run_id),
+            load_screenshot(run_id)
+        )
+        if log_file is None or log_file == "INVALID_JSON":
+            raise ValueError("Unable to fetch the log file or invalid JSON format")
+        if screenshot is None or screenshot == "INVALID_IMAGE":
+            raise ValueError("Unable to fetch the screenshot or invalid image format")
+
+        logging.info('Input data loaded successfully.')
+
+        # Stage: Analyze Logs
+        update_progress(slack_client, channel_id, progress_message_ts, 20, thread_ts=message_timestamp,
+                        stage="analyze_logs")
+        failed_step_id, catch_error_step_id, steps_between = determine_point_of_failure(log_file)
+        if failed_step_id is None:
+            raise ValueError("Could not determine the point of failure from the log file")
+
+        preceding_steps_log = load_log_preceding_steps(
+            log_file, failed_step_id,
+            catch_error_step_id=catch_error_step_id,
+            steps_to_include=10 + steps_between
+        )
+        if not preceding_steps_log:
+            raise ValueError(f"No preceding steps found for failed_step_id: {failed_step_id}")
+
+        logging.info('Log analysis completed.')
+
+        # Stage: Context Generation
+        update_progress(slack_client, channel_id, progress_message_ts, 30, thread_ts=message_timestamp,
+                        stage="context_generation")
+        async with SearchClient(
+                endpoint=os.getenv("SEARCH_ENDPOINT"),
+                index_name=os.getenv("SEARCH_INDEX_NAME"),
+                credential=AzureKeyCredential(os.getenv("SEARCH_API_KEY"))
+        ) as search_client:
+            uardi_context = await get_uardi_context(
+                organisation_name=client_name, task_name=task_name,
+                step_ids=[step['stepUuid'] for step in preceding_steps_log if 'stepUuid' in step],
+                failed_step_id=failed_step_id
+            )
+            if uardi_context is None or uardi_context['main_task_data'] is None:
+                raise ValueError("UARDI context is None or invalid")
+
+            catch_error = False
+            if catch_error_step_id:
+                failed_step_id = catch_error_step_id
+                catch_error = True
+
+            failed_log_step_object = find_json_by_key_value(preceding_steps_log, 'stepUuid', failed_step_id)
+            if failed_log_step_object is None:
+                raise ValueError(f"No step found with stepUuid: {failed_step_id}")
+
+            failed_descr_step_object = uardi_context['step_descriptions'].get(failed_step_id, {})
+
+            lookup_object = {
+                "dev_cause": None,
+                "dev_cause_enriched": None,
+                "ai_context": None,
+                "debug_pof": failed_log_step_object.get('debug', None),
+                "type_pof": failed_descr_step_object.get('type', None),
+                "name_pof": failed_log_step_object.get('name', None),
+                "description_pof": failed_log_step_object.get('description', None),
+                "ai_description_pof": failed_descr_step_object.get('original_ai_step_description', None),
+                "payload_pof": failed_descr_step_object.get('original_step_payload', None)
+            }
+
+            similar_errors_before_cause = await search_similar_errors(
+                search_client=search_client,
+                openai_client=openai_client,
+                lookup_object=lookup_object,
+                failed_step_id=failed_step_id,
+                absolute_threshold=0.5,
+                relative_threshold=0.7
+            )
+
+            historical_resolved_errors = uardi_context.get('resolved_errors', [])
+            historical_error_overview, similar_error_overview = create_combined_error_overview(
+                historical_resolved_errors,
+                similar_errors_before_cause
+            )
+
+            merged_steps = merge_log_and_uardi(preceding_steps_log, uardi_context)
+
+            logging.info('Context generation completed.')
+
+            # Stage: Error Description
+            update_progress(slack_client, channel_id, progress_message_ts, 50, thread_ts=message_timestamp,
+                            stage="error_description")
+            error_description = await generate_error_context(
+                client=openai_client, customer_name=client_name,
+                process_name=task_name, steps_log=merged_steps,
+                screenshot=screenshot, uardi_context=uardi_context,
+                historical_error_overview=historical_error_overview,
+                catch_error_trigger=catch_error
+            )
+            logging.info('Error description generated successfully.')
+
+            # Stage: Cause Analysis
+            update_progress(slack_client, channel_id, progress_message_ts, 70, thread_ts=message_timestamp,
+                            stage="cause_analysis")
+            cause_analysis = await perform_cause_analysis(
+                client=openai_client, customer_name=client_name,
+                process_name=task_name, steps_log=merged_steps,
+                screenshot=screenshot, uardi_context=uardi_context,
+                ai_generated_error_context=error_description,
+                historical_error_overview=historical_error_overview,
+                similar_error_overview=similar_error_overview,
+                catch_error_trigger=catch_error
+            )
+
+            human_like_ai_cause = await summarize_ai_cause(client=openai_client, ai_cause=cause_analysis)
+
+            lookup_object['dev_cause_enriched'] = human_like_ai_cause
+            lookup_object['dev_cause'] = human_like_ai_cause
+
+            similar_errors_after_cause = await search_similar_errors(
+                search_client=search_client,
+                openai_client=openai_client,
+                lookup_object=lookup_object,
+                failed_step_id=failed_step_id,
+                absolute_threshold=0.5,
+                relative_threshold=0.7
+            )
+
+            historical_error_overview, similar_error_overview = create_combined_error_overview(
+                historical_resolved_errors,
+                similar_errors_after_cause
+            )
+
+            logging.info('Cause analysis completed.')
+
+            # Stage: Solution Generation
+            update_progress(slack_client, channel_id, progress_message_ts, 85, thread_ts=message_timestamp,
+                            stage="solution_generation")
+            restart_and_solution = await generate_restart_information_and_solution(
+                client=openai_client,
+                error_context=error_description,
+                cause_analysis=cause_analysis,
+                historical_error_overview=historical_error_overview,
+                similar_error_overview=similar_error_overview
+            )
+
+            # Stage: Final Analysis
+            update_progress(slack_client, channel_id, progress_message_ts, 95, thread_ts=message_timestamp,
+                            stage="final_analysis")
+            combined_analysis = await combine_and_refine_analysis(
+                openai_client, error_description, cause_analysis, restart_and_solution
+            )
+            formatted_analysis = await format_for_slack(openai_client, combined_analysis)
+            slack_blocks_object, summary_content = assemble_blocks(json.loads(formatted_analysis))
+
+            logging.info('Analysis formatted for Slack successfully.')
+
+            # Send the final analysis as a separate message
+            send_message(slack_client, channel_id, message_timestamp, slack_blocks_object['blocks'], as_text=False,
+                         fallback_content=summary_content)
+
+            # Remove the progress message (only delete the progress update, not the analysis)
+            try:
+                slack_client.chat_delete(
+                    channel=channel_id,
+                    ts=progress_message_ts
+                )
+            except SlackApiError as e:
+                logging.error(f"Error deleting progress message: {e}")
+
+            # Prepare data for sending to UARDI and Yarado
+            supporter_data = {
+                "task_run_id": run_id,
+                "task_name": task_name,
+                "organisation_name": client_name,
+                "step_id_pof": failed_step_id,
+                "ai_cause": cause_analysis,
+                "ai_description": error_description
+            }
+
+            yarado_data = {
+                "task_run_id": run_id
+            }
+
+            if environment == 'production':  # Send data only in production mode
+                try:
+                    send_supporter_data_to_uardi(supporter_data)
+                    send_task_run_id_to_yarado(yarado_data)
+                except Exception as e:
+                    logging.error(f"Failed to send data to UARDI or Yarado: {e}")
+                    await send_error_message(slack_client, channel_id, message_timestamp,
+                                             ":warning: Error: Failed to update external systems with the analysis results.")
+
+    except ValueError as ve:
+        logging.error(f"Value error occurred: {ve}")
+        error_message = f":warning: An error occurred while processing your request: Invalid data format. Please check your input and try again."
+        await send_error_message(slack_client, channel_id, message_timestamp, error_message)
+    except RequestException as re:
+        logging.error(f"Request error occurred: {re}")
+        error_message = f":warning: An error occurred while communicating with external services. Please try again later."
+        await send_error_message(slack_client, channel_id, message_timestamp, error_message)
+    except OpenAIError as oe:
+        logging.error(f"OpenAI API error: {oe}")
+        error_message = f":warning: An error occurred while generating the analysis. Our AI service is currently experiencing issues. Please try again later."
+        await send_error_message(slack_client, channel_id, message_timestamp, error_message)
+    except SlackApiError as se:
+        logging.error(f"Slack API error: {se}")
+        error_message = f":warning: An error occurred while sending the message to Slack. Please try again or contact support."
+        await send_error_message(slack_client, channel_id, message_timestamp, error_message)
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        error_message = f":warning: An unexpected error occurred. Please try again later or contact support if the issue persists."
+        await send_error_message(slack_client, channel_id, message_timestamp, error_message)

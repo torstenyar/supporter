@@ -2,4 +2,5 @@
 archive
 files
 Dockerfile.dev
-utils/staging_supporter.py
+archive/staging_supporter.py
+insights

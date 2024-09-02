@@ -18,3 +18,4 @@ azure-monitor-opentelemetry
 aiohttp
 azure-servicebus
 azure-cosmos
+azure-search-documents
