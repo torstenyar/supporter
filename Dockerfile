@@ -2,7 +2,7 @@
 FROM python:3.9-slim
 
 # Set the working directory to the root of the project
-WORKDIR /
+WORKDIR /app
 
 # Copy the requirements.txt first to leverage Docker cache
 COPY requirements.txt /
@@ -11,7 +11,7 @@ COPY requirements.txt /
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY . /
+COPY . .
 
 # Ensure logs are sent to stdout/stderr
 ENV PYTHONUNBUFFERED=1
