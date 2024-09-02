@@ -382,13 +382,21 @@ async def process_message(event, environment, slack_client, openai_client):
                 openai_client, error_description, cause_analysis, restart_and_solution
             )
             formatted_analysis = await format_for_slack(openai_client, combined_analysis)
-            slack_blocks_object, summary_content = assemble_blocks(json.loads(formatted_analysis))
+            json_formatted_analysis = formatted_analysis if isinstance(formatted_analysis, dict) else json.loads(
+                formatted_analysis)
+            slack_blocks_object, summary_content = assemble_blocks(json_formatted_analysis)
 
             logging.info('Analysis formatted for Slack successfully.')
 
-            # Send the final analysis as a separate message
-            send_message(slack_client, channel_id, message_timestamp, slack_blocks_object['blocks'], as_text=False,
-                         fallback_content=summary_content)
+            # Ensure slack_blocks_object is a dictionary and contains the 'blocks' key
+            if isinstance(slack_blocks_object, dict) and 'blocks' in slack_blocks_object:
+                logging.info('Valid blocks found, proceeding to send message.')
+                send_message(slack_client, channel_id, message_timestamp, slack_blocks_object['blocks'], as_text=False,
+                             fallback_content=summary_content)
+            else:
+                logging.warning('Invalid or missing blocks in the formatted Slack message, sending fallback content.')
+                # If the blocks are invalid or missing, send the summary as a fallback message
+                send_message(slack_client, channel_id, message_timestamp, summary_content, as_text=True)
 
             # Remove the progress message (only delete the progress update, not the analysis)
             try:
