@@ -896,9 +896,10 @@ def assemble_blocks(ai_output):
     """Convert the AI output into a Slack message format and return the summary block separately."""
     slack_message = {"blocks": []}
     summary_text = ""  # To store the content of the summary block
+    valid_blocks = []  # To collect blocks that are not empty
 
     # Iterate through the blocks and build the message
-    for key in sorted(ai_output.keys(), key=lambda x: int(key.replace('block', ''))):
+    for key in sorted(ai_output.keys(), key=lambda x: int(x.replace('block', ''))):
         block = ai_output[key]
 
         # Ensure the block text is not empty
@@ -906,7 +907,7 @@ def assemble_blocks(ai_output):
             block_text = block['text']['text'].strip()  # Strip any surrounding whitespace
             if block_text:
                 # Add the section block to the message
-                slack_message['blocks'].append({
+                valid_blocks.append({
                     "type": block['type'],
                     "text": {
                         "type": block['text']['type'],
@@ -918,9 +919,12 @@ def assemble_blocks(ai_output):
                 if key == "block1":  # Assuming block1 is the summary block
                     summary_text = block_text
 
-        # Add a divider after each section block (except the last one)
-        if key != list(ai_output.keys())[-1]:
+    # Insert dividers between blocks (but not after the last one)
+    for i, block in enumerate(valid_blocks):
+        slack_message['blocks'].append(block)
+        if i < len(valid_blocks) - 1:  # Avoid adding a divider after the last block
             slack_message['blocks'].append({"type": "divider"})
 
     return slack_message, summary_text
+
 
