@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Yarado-Supporter-2 soft launch - fixed some bugs">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Added some prompt tweaks">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,25 +40,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.app.executor": "Run",
-    "Python.azure_data_loader (1).executor": "Run",
-    "Python.azure_data_loader.executor": "Run",
-    "Python.constructor.executor": "Run",
-    "Python.event_handler.executor": "Run",
-    "Python.staging_supporter.executor": "Run",
-    "Python.supporter.executor": "Run",
-    "Python.uardi_integration.executor": "Run",
-    "Python.uardi_wrapper.executor": "Run",
-    "Python.usage_insights.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "development",
-    "last_opened_file_path": "/Users/torstenoosterholt/PycharmProjects/yarado-supporter/utils",
-    "settings.editor.selected.configurable": "vcs.Git"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.azure_data_loader (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.azure_data_loader.executor&quot;: &quot;Run&quot;,
+    &quot;Python.constructor.executor&quot;: &quot;Run&quot;,
+    &quot;Python.event_handler.executor&quot;: &quot;Run&quot;,
+    &quot;Python.staging_supporter.executor&quot;: &quot;Run&quot;,
+    &quot;Python.supporter.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uardi_integration.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uardi_wrapper.executor&quot;: &quot;Run&quot;,
+    &quot;Python.usage_insights.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;development&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/torstenoosterholt/PycharmProjects/yarado-supporter/utils&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/utils" />
@@ -72,7 +72,7 @@
       <recent name="$PROJECT_DIR$/.venv" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.constructor">
+  <component name="RunManager" selected="Python.usage_insights">
     <configuration name="constructor" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="yarado-supporter" />
       <option name="ENV_FILES" value="" />
@@ -185,9 +185,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.usage_insights" />
         <item itemvalue="Python.constructor" />
         <item itemvalue="Python.staging_supporter" />
-        <item itemvalue="Python.usage_insights" />
         <item itemvalue="Python.uardi_wrapper" />
         <item itemvalue="Python.supporter" />
       </list>
@@ -208,38 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00017" summary="Removed bugs">
-      <option name="closed" value="true" />
-      <created>1719849510095</created>
-      <option name="number" value="00017" />
-      <option name="presentableId" value="LOCAL-00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1719849510095</updated>
-    </task>
-    <task id="LOCAL-00018" summary="Included error handling for non JSON log files">
-      <option name="closed" value="true" />
-      <created>1719856827528</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1719856827528</updated>
-    </task>
-    <task id="LOCAL-00019" summary="Comments">
-      <option name="closed" value="true" />
-      <created>1719858690831</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1719858690831</updated>
-    </task>
-    <task id="LOCAL-00020" summary="Comments and small adjustment for objective descriptions">
-      <option name="closed" value="true" />
-      <created>1719859554759</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1719859554759</updated>
     </task>
     <task id="LOCAL-00021" summary="Channel id check">
       <option name="closed" value="true" />
@@ -601,7 +569,39 @@
       <option name="project" value="LOCAL" />
       <updated>1725294356810</updated>
     </task>
-    <option name="localTasksCounter" value="66" />
+    <task id="LOCAL-00066" summary="Some more tweaks in terms of output formatting...">
+      <option name="closed" value="true" />
+      <created>1725296000301</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1725296000301</updated>
+    </task>
+    <task id="LOCAL-00067" summary="Some more tweaks in terms of output formatting...">
+      <option name="closed" value="true" />
+      <created>1725296603517</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1725296603517</updated>
+    </task>
+    <task id="LOCAL-00068" summary="Some more tweaks in terms of output formatting...">
+      <option name="closed" value="true" />
+      <created>1725297114791</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1725297114791</updated>
+    </task>
+    <task id="LOCAL-00069" summary="Added some prompt tweaks">
+      <option name="closed" value="true" />
+      <created>1725297728661</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1725297728661</updated>
+    </task>
+    <option name="localTasksCounter" value="70" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -619,8 +619,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Minor tweaks to code, also added some additional error handling." />
-    <MESSAGE value="removed message" />
     <MESSAGE value="Ensured retriggering is possible and added retries to the azure openai calls" />
     <MESSAGE value="Removed variable changes from analysis. Can be implemented back later." />
     <MESSAGE value="Changed the prompts based on claude ai suggestions." />
@@ -644,6 +642,8 @@
     <MESSAGE value="Yarado-Supporter-2 soft launch" />
     <MESSAGE value="Yarado-Supporter-2 soft launch - fixed indent level" />
     <MESSAGE value="Yarado-Supporter-2 soft launch - fixed some bugs" />
-    <option name="LAST_COMMIT_MESSAGE" value="Yarado-Supporter-2 soft launch - fixed some bugs" />
+    <MESSAGE value="Some more tweaks in terms of output formatting..." />
+    <MESSAGE value="Added some prompt tweaks" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added some prompt tweaks" />
   </component>
 </project>
