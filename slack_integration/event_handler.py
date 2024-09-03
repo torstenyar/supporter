@@ -279,9 +279,10 @@ async def process_message(event, environment, slack_client, openai_client):
             catch_error = False
             if catch_error_step_id:
                 failed_step_id = catch_error_step_id
+                print('failed step id changed')
                 catch_error = True
 
-            failed_log_step_object = find_json_by_key_value(preceding_steps_log, 'stepUuid', failed_step_id)
+            failed_log_step_object = find_json_by_key_value(json.loads(log_file), 'stepUuid', failed_step_id)
             if failed_log_step_object is None:
                 raise ValueError(f"No step found with stepUuid: {failed_step_id}")
 

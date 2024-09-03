@@ -887,7 +887,7 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
     return retry_request_openai(
         client=client,
         messages=messages,
-        model='gpt-4o-2024-08-06',
+        model='gpt-4o-mini',
         json_schema=slack_json_schema
     )
 
