@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Bug fixes" />
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Replaced placeholders">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -204,14 +207,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00022" summary="readded generate textual description.">
-      <option name="closed" value="true" />
-      <created>1719862023808</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1719862023808</updated>
     </task>
     <task id="LOCAL-00023" summary="Ensured more natural description">
       <option name="closed" value="true" />
@@ -597,7 +592,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725368608841</updated>
     </task>
-    <option name="localTasksCounter" value="71" />
+    <task id="LOCAL-00071" summary="Replaced placeholders">
+      <option name="closed" value="true" />
+      <created>1725372068511</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1725372068511</updated>
+    </task>
+    <option name="localTasksCounter" value="72" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -615,7 +618,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Removed variable changes from analysis. Can be implemented back later." />
     <MESSAGE value="Changed the prompts based on claude ai suggestions." />
     <MESSAGE value="Added backup emoji and some tweaks to the prompt." />
     <MESSAGE value="Lowered temperature and changed formatting guidelines." />
@@ -640,6 +642,7 @@
     <MESSAGE value="Some more tweaks in terms of output formatting..." />
     <MESSAGE value="Added some prompt tweaks" />
     <MESSAGE value="Bug fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Bug fixes" />
+    <MESSAGE value="Replaced placeholders" />
+    <option name="LAST_COMMIT_MESSAGE" value="Replaced placeholders" />
   </component>
 </project>
