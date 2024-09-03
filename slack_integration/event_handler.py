@@ -24,6 +24,7 @@ from utils.constructor import (
 from utils.post_process_and_update import (
     send_task_run_id_to_yarado, send_supporter_data_to_uardi
 )
+import html
 
 # Uncomment below for local testing
 #from dotenv import load_dotenv
@@ -200,12 +201,8 @@ async def process_message(event, environment, slack_client, openai_client):
 
         # Extract necessary data from the message
         client_name, task_name, prio, run_id = extract_data_from_message(message)
-
-        if '&amp' in client_name:
-            client_name.replace('&amp', '&')
-
-        elif '&amp' in task_name:
-            task_name.replace('&amp', '&')
+        client_name = html.unescape(client_name)
+        task_name = html.unescape(task_name)
 
         logging.info(f"Client Name: {client_name}, Task Name: {task_name}, Prio: {prio}, Run ID: {run_id}")
 
