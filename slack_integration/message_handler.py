@@ -75,7 +75,8 @@ def send_message(client, channel, thread_ts, content, as_text=True, fallback_con
                 logging.error(f"Error sending fallback message: {e2.response['error']}")
 
 
-def update_progress(slack_client, channel_id, message_timestamp, percentage, thread_ts, stage):
+def update_progress(slack_client, channel_id, message_timestamp, percentage, thread_ts, stage, attempt=None,
+                    max_retries=3):
     stages = {
         "fetch_data": "Fetching data faster than a squirrel collecting nuts! 🐿️",
         "analyze_logs": "Diving deep into the logs like a digital detective... 🕵️‍♂️",
@@ -83,10 +84,16 @@ def update_progress(slack_client, channel_id, message_timestamp, percentage, thr
         "error_description": "Crafting a story from the data... 📚",
         "cause_analysis": "Putting on my thinking cap to figure out what went wrong... 🤔",
         "solution_generation": "Brainstorming solutions like a caffeinated engineer! ☕️",
-        "final_analysis": "Polishing the results to make them shine... ✨"
+        "final_analysis": "Polishing the results to make them shine... ✨",
+        "retrying_block_formatting": "Reformatting the analysis... retry in progress 🔄",
+        "retrying_message_sending": "Retrying message sending... 🔁"
     }
 
-    progress_message = f"{stages.get(stage, 'Working hard...')} ({percentage}% complete)"
+    # If this is a retry attempt, modify the message accordingly
+    if "retrying" in stage and attempt:
+        progress_message = f"{stages.get(stage.split('_')[0], 'Retrying...')} (Attempt {attempt}/{max_retries})"
+    else:
+        progress_message = f"{stages.get(stage, 'Working hard...')} ({percentage}% complete)"
 
     try:
         slack_client.chat_update(
@@ -118,16 +125,17 @@ def update_progress(slack_client, channel_id, message_timestamp, percentage, thr
 def generate_progress_bar(percentage: int) -> str:
     """
     Generates a textual representation of a progress bar with colored blocks.
-    The progress bar consists of 10 blocks, where each block represents 10% progress.
+    The progress bar consists of 20 blocks, where each block represents 5% progress.
     Uses emojis to simulate color.
     """
     total_blocks = 20
     filled_blocks = int((percentage / 100) * total_blocks)
     empty_blocks = total_blocks - filled_blocks
 
-    # Use different emojis to represent filled and empty blocks
-    filled_block = "🟩"  # Green square
-    empty_block = "⬜"  # White square
+    # Use emojis to represent progress
+    filled_block = "🟩"  # Green block for completed part
+    empty_block = "⬜"  # White block for incomplete part
 
     progress_bar = f"[{filled_block * filled_blocks}{empty_block * empty_blocks}] {percentage}%"
     return progress_bar
+

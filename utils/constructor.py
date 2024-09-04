@@ -1,5 +1,6 @@
 import json
 from utils.ai_utils import retry_request_openai
+import logging
 
 
 async def generate_error_context(client, customer_name, process_name, steps_log, screenshot,
@@ -541,7 +542,7 @@ Remember to use a professional yet casual, friendly, and solution-oriented tone 
     return retry_request_openai(client, messages)
 
 
-async def format_for_slack(client, combined_analysis):
+async def format_for_slack(client, combined_analysis, model='gpt-4o-mini'):
     messages = [
         {
             "role": "system",
@@ -905,7 +906,7 @@ The user will provide you with a JSON scheme that you strictly follow and fill i
     return retry_request_openai(
         client=client,
         messages=messages,
-        model='gpt-4o-mini',
+        model=model,
         json_schema=slack_json_schema
     )
 
@@ -917,32 +918,45 @@ def assemble_blocks(ai_output):
     valid_blocks = []  # To collect blocks that are not empty
 
     # Iterate through the blocks and build the message
-    for key in sorted(ai_output.keys(), key=lambda x: int(x.replace('block', ''))):
-        block = ai_output[key]
+    try:
+        for key in sorted(ai_output.keys(), key=lambda x: int(x.replace('block', ''))):
+            block = ai_output[key]
 
-        # Ensure the block text is not empty
-        if block['type'] == 'section' and 'text' in block and 'text' in block['text']:
-            block_text = block['text']['text'].strip()  # Strip any surrounding whitespace
-            if block_text:
-                # Add the section block to the message
-                valid_blocks.append({
-                    "type": block['type'],
-                    "text": {
-                        "type": block['text']['type'],
-                        "text": block_text
-                    }
-                })
+            # Ensure the block text is not empty
+            if block.get('type') == 'section' and 'text' in block and 'text' in block['text']:
+                block_text = block['text']['text'].strip()  # Strip any surrounding whitespace
 
-                # Capture the summary block's content
-                if key == "block1":  # Assuming block1 is the summary block
-                    summary_text = block_text
+                # Check if the block text is valid
+                if block_text:
+                    # Add the section block to the message
+                    valid_blocks.append({
+                        "type": block['type'],
+                        "text": {
+                            "type": block['text']['type'],
+                            "text": block_text
+                        }
+                    })
 
-    # Insert dividers between blocks (but not after the last one)
-    for i, block in enumerate(valid_blocks):
-        slack_message['blocks'].append(block)
-        if i < len(valid_blocks) - 1:  # Avoid adding a divider after the last block
-            slack_message['blocks'].append({"type": "divider"})
+                    # Capture the summary block's content
+                    if key == "block1":  # Assuming block1 is the summary block
+                        summary_text = block_text
 
-    return slack_message, summary_text
+        # Insert dividers between blocks (but not after the last one)
+        for i, block in enumerate(valid_blocks):
+            slack_message['blocks'].append(block)
+            if i < len(valid_blocks) - 1:  # Avoid adding a divider after the last block
+                slack_message['blocks'].append({"type": "divider"})
+
+        return slack_message, summary_text
+
+    except KeyError as e:
+        logging.error(f"Missing key in AI output: {e}")
+        raise
+    except TypeError as e:
+        logging.error(f"Type error in block assembly: {e}")
+        raise
+    except ValueError as e:
+        logging.error(f"Value error during block assembly: {e}")
+        raise
 
 

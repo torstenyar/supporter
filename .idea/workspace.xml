@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Replaced placeholders">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="html escape for &amp; sign">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -207,30 +209,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00023" summary="Ensured more natural description">
-      <option name="closed" value="true" />
-      <created>1719862768597</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1719862768597</updated>
-    </task>
-    <task id="LOCAL-00024" summary="Tweaked the output format a bit!">
-      <option name="closed" value="true" />
-      <created>1719863597949</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1719863597949</updated>
-    </task>
-    <task id="LOCAL-00025" summary="added logging capabilities">
-      <option name="closed" value="true" />
-      <created>1719908861008</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1719908861008</updated>
     </task>
     <task id="LOCAL-00026" summary="Minor tweaks to code, also added some additional error handling.">
       <option name="closed" value="true" />
@@ -600,7 +578,31 @@
       <option name="project" value="LOCAL" />
       <updated>1725372068511</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="html escape for &amp; sign">
+      <option name="closed" value="true" />
+      <created>1725376206727</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1725376206727</updated>
+    </task>
+    <task id="LOCAL-00073" summary="html escape for &amp; sign">
+      <option name="closed" value="true" />
+      <created>1725376903647</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1725376903647</updated>
+    </task>
+    <task id="LOCAL-00074" summary="html escape for &amp; sign">
+      <option name="closed" value="true" />
+      <created>1725376979860</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1725376979860</updated>
+    </task>
+    <option name="localTasksCounter" value="75" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -618,7 +620,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Changed the prompts based on claude ai suggestions." />
     <MESSAGE value="Added backup emoji and some tweaks to the prompt." />
     <MESSAGE value="Lowered temperature and changed formatting guidelines." />
     <MESSAGE value="added more specific instructions for json scheme." />
@@ -643,6 +644,7 @@
     <MESSAGE value="Added some prompt tweaks" />
     <MESSAGE value="Bug fixes" />
     <MESSAGE value="Replaced placeholders" />
-    <option name="LAST_COMMIT_MESSAGE" value="Replaced placeholders" />
+    <MESSAGE value="html escape for &amp; sign" />
+    <option name="LAST_COMMIT_MESSAGE" value="html escape for &amp; sign" />
   </component>
 </project>

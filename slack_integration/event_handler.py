@@ -84,6 +84,66 @@ def clean_old_message_states(states):
     }
 
 
+async def retry_block_assembly(openai_client, combined_analysis, slack_client, channel_id, progress_message_ts,
+                               message_timestamp, max_retries=3):
+    model = 'gpt-4o-mini'  # Start with gpt-4o-mini
+    for attempt in range(1, max_retries + 1):
+        try:
+            logging.info(f"Attempt {attempt} to format blocks using model {model}")
+
+            formatted_analysis = await format_for_slack(openai_client, combined_analysis, model=model)
+            json_formatted_analysis = json.loads(formatted_analysis) if isinstance(formatted_analysis,
+                                                                                   str) else formatted_analysis
+
+            # Try assembling blocks
+            slack_blocks_object, summary_content = assemble_blocks(json_formatted_analysis)
+
+            # Success, return the assembled blocks and summary
+            return slack_blocks_object, summary_content
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+            logging.error(f"Block assembly failed on attempt {attempt}: {e}")
+            # Update progress with the retry
+            update_progress(slack_client, channel_id, progress_message_ts, 95, thread_ts=message_timestamp,
+                            stage=f"retrying_block_formatting_{attempt}")
+
+            # Retry with gpt-4o after the first attempt
+            model = 'gpt-4o'
+
+        if attempt == max_retries:
+            raise Exception("Max retries reached for block assembly.")
+
+
+async def retry_sending_message(slack_client, channel_id, message_timestamp, openai_client, combined_analysis,
+                                slack_blocks_object, summary_content, progress_message_ts, max_retries=3):
+    for attempt in range(1, max_retries + 1):
+        try:
+            # Attempt to send the message
+            send_message(slack_client, channel_id, message_timestamp, slack_blocks_object['blocks'], as_text=False,
+                         fallback_content=summary_content)
+            logging.info(f"Slack message sent successfully on attempt {attempt}")
+            return
+
+        except SlackApiError as e:
+            logging.error(f"Error sending Slack message on attempt {attempt}: {e}")
+
+            # Retry block formatting if invalid blocks caused the failure
+            if e.response['error'] == "invalid_blocks":
+                logging.info(f"Retrying block assembly due to invalid blocks on attempt {attempt}")
+                # Retry the block assembly
+                slack_blocks_object, summary_content = await retry_block_assembly(openai_client, combined_analysis)
+
+            # Update progress to inform about retries
+            update_progress(slack_client, channel_id, progress_message_ts, 95, thread_ts=message_timestamp,
+                            stage=f"retrying_message_sending_{attempt}")
+
+        if attempt == max_retries:
+            # If all retries fail, fallback to sending a simplified message
+            logging.warning("All retries for sending message failed, falling back to summary message.")
+            send_message(slack_client, channel_id, message_timestamp, summary_content, as_text=True)
+            raise Exception("Max retries reached for Slack message sending.")
+
+
 # Load existing message states
 message_states = load_message_states()
 
@@ -383,34 +443,27 @@ async def process_message(event, environment, slack_client, openai_client):
             # Stage: Final Analysis
             update_progress(slack_client, channel_id, progress_message_ts, 95, thread_ts=message_timestamp,
                             stage="final_analysis")
-            combined_analysis = await combine_and_refine_analysis(
-                openai_client, error_description, cause_analysis, restart_and_solution
-            )
-            formatted_analysis = await format_for_slack(openai_client, combined_analysis)
-            json_formatted_analysis = formatted_analysis if isinstance(formatted_analysis, dict) else json.loads(
-                formatted_analysis)
-            slack_blocks_object, summary_content = assemble_blocks(json_formatted_analysis)
 
-            logging.info('Analysis formatted for Slack successfully.')
-
-            # Ensure slack_blocks_object is a dictionary and contains the 'blocks' key
-            if isinstance(slack_blocks_object, dict) and 'blocks' in slack_blocks_object:
-                logging.info('Valid blocks found, proceeding to send message.')
-                send_message(slack_client, channel_id, message_timestamp, slack_blocks_object['blocks'], as_text=False,
-                             fallback_content=summary_content)
-            else:
-                logging.warning('Invalid or missing blocks in the formatted Slack message, sending fallback content.')
-                # If the blocks are invalid or missing, send the summary as a fallback message
-                send_message(slack_client, channel_id, message_timestamp, summary_content, as_text=True)
-
-            # Remove the progress message (only delete the progress update, not the analysis)
             try:
-                slack_client.chat_delete(
-                    channel=channel_id,
-                    ts=progress_message_ts
-                )
-            except SlackApiError as e:
-                logging.error(f"Error deleting progress message: {e}")
+                combined_analysis = await combine_and_refine_analysis(openai_client, error_description, cause_analysis,
+                                                                      restart_and_solution)
+
+                # Retry block assembly with proper retries
+                slack_blocks_object, summary_content = await retry_block_assembly(openai_client, combined_analysis,
+                                                                                  slack_client, channel_id,
+                                                                                  progress_message_ts, message_timestamp)
+
+                logging.info('Analysis formatted for Slack successfully.')
+
+                # Retry sending the Slack message with up to 3 attempts
+                await retry_sending_message(slack_client, channel_id, message_timestamp, openai_client,
+                                            combined_analysis, slack_blocks_object, summary_content, progress_message_ts)
+
+                # Remove the progress message after successful send
+                slack_client.chat_delete(channel=channel_id, ts=progress_message_ts)
+
+            except Exception as e:
+                logging.error(f"Error during final analysis: {e}")
 
             # Prepare data for sending to UARDI and Yarado
             supporter_data = {
