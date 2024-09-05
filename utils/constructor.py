@@ -542,7 +542,7 @@ Remember to use a professional yet casual, friendly, and solution-oriented tone 
     return retry_request_openai(client, messages)
 
 
-async def format_for_slack(client, combined_analysis, model='gpt-4o-mini'):
+async def format_for_slack(client, combined_analysis, model='gpt-4o-2024-08-06'):
     messages = [
         {
             "role": "system",

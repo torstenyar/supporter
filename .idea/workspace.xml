@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="html escape for &amp; sign">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Retry mechanism">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/slack_integration/message_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/message_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -209,14 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00026" summary="Minor tweaks to code, also added some additional error handling.">
-      <option name="closed" value="true" />
-      <created>1720000340983</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1720000340983</updated>
     </task>
     <task id="LOCAL-00027" summary="Minor tweaks to code, also added some additional error handling.">
       <option name="closed" value="true" />
@@ -602,7 +593,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725376979860</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="Retry mechanism">
+      <option name="closed" value="true" />
+      <created>1725436048384</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1725436048384</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -620,7 +619,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="Added backup emoji and some tweaks to the prompt." />
     <MESSAGE value="Lowered temperature and changed formatting guidelines." />
     <MESSAGE value="added more specific instructions for json scheme." />
     <MESSAGE value="Added retry mechanism and corrected the part about retriggering with the same emoji." />
@@ -645,6 +643,7 @@
     <MESSAGE value="Bug fixes" />
     <MESSAGE value="Replaced placeholders" />
     <MESSAGE value="html escape for &amp; sign" />
-    <option name="LAST_COMMIT_MESSAGE" value="html escape for &amp; sign" />
+    <MESSAGE value="Retry mechanism" />
+    <option name="LAST_COMMIT_MESSAGE" value="Retry mechanism" />
   </component>
 </project>
