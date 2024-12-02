@@ -40,7 +40,7 @@ class StepsWrapper(UARDIWrapper):
             query = """
             SELECT c.id, c.coords, c.name, c.type, c.payload, c.ai_description
             FROM c 
-            WHERE c.id = @step_id 
+            WHERE c.id = @step_id AND c.status != 'deleted'
             AND STARTSWITH(c.organisationID_taskname, @organisation_id)
             """
             parameters = [

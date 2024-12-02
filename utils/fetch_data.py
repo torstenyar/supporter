@@ -632,3 +632,45 @@ async def get_uardi_context(organisation_name: str, task_name: str, step_ids: li
     }
 
     return context
+
+
+# async def test_main():
+#     organisation_name = "MijZo"
+#     task_name = "Financiering_Opschaling-11_days"
+#     run_id = "573f7c42-ef40-454c-816f-b5e802154472"
+#     log_file = await load_log_file(run_id)
+#     screenshot = await load_screenshot(run_id)
+#
+#     if log_file is None or log_file == "INVALID_JSON":
+#         raise ValueError("Unable to fetch the log file or invalid JSON format")
+#     if screenshot is None or screenshot == "INVALID_IMAGE":
+#         raise ValueError("Unable to fetch the screenshot or invalid image format")
+#
+#     logging.info('Input data loaded successfully.')
+#
+#     failed_step_id, catch_error_step_id, steps_between = determine_point_of_failure(log_file)
+#     if failed_step_id is None:
+#         raise ValueError("Could not determine the point of failure from the log file")
+#
+#     preceding_steps_log = load_log_preceding_steps(
+#         log_file, failed_step_id,
+#         catch_error_step_id=catch_error_step_id,
+#         steps_to_include=10 + steps_between
+#     )
+#     if not preceding_steps_log:
+#         raise ValueError(f"No preceding steps found for failed_step_id: {failed_step_id}")
+#
+#     logging.info('Log analysis completed.')
+#
+#     uardi_context = await get_uardi_context(
+#         organisation_name=organisation_name, task_name=task_name,
+#         step_ids=[step['stepUuid'] for step in preceding_steps_log if 'stepUuid' in step],
+#         failed_step_id=failed_step_id
+#     )
+#
+#     print(uardi_context)
+#
+#
+# if __name__ == "__main__":
+#     import asyncio
+#     asyncio.run(test_main())

@@ -9,7 +9,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 from slack_integration.event_handler import handle_event
 from slack_integration.slack_client import initialize_slack_client
-from utils.azure_openai_client import initialize_openai_client
+from utils.azure_openai_client import initialize_client
 from azure.monitor.opentelemetry import configure_azure_monitor
 
 # Load environment variables
@@ -69,7 +69,7 @@ else:
 
 # Initialize Slack client
 slack_client = initialize_slack_client(slack_bot_token)
-azure_openai_client = initialize_openai_client()
+azure_openai_client = initialize_client()
 
 azure_api_key = os.getenv('AZURE_API_KEY')
 servicebus_connection_str = os.getenv('SERVICEBUS_CONNECTION_STR')
