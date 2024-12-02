@@ -27,7 +27,8 @@ async def vectorize_text(client, text, max_retries=5, initial_timeout=1, max_tim
     raise Exception(":warning: Unexpected error occurred during vectorization.")
 
 
-def retry_request_openai(client, messages, model="generate_descriptions", max_retries=5, initial_timeout=1, max_timeout=60,
+def retry_request_openai(client, messages, model="generate_descriptions", max_retries=5, initial_timeout=1,
+                         max_timeout=60,
                          max_tokens=4096, json_schema=None):
     logging.info(f'Calling upon {client}')
     for attempt in range(max_retries):
