@@ -1,5 +1,4 @@
 import logging
-import openai
 import random
 import time
 import asyncio
@@ -11,12 +10,13 @@ async def vectorize_text(client, text, max_retries=5, initial_timeout=1, max_tim
         try:
             response = client.embeddings.create(
                 model="text-embedding-3-large",
-                input=text
+                input=text,
+                dimensions=3072
             )
             return response.data[0].embedding
-        except openai.OpenAIError as e:
+        except Exception as e:
             if attempt == max_retries - 1:
-                logging.error(f"Max retries reached for vectorization. Last error: {e}")
+                logging.error(f"Max retries reached for vectorization. Last error: {e} - Input text: {text}.")
                 raise e
 
             wait_time = min(initial_timeout * (2 ** attempt) + random.uniform(0, 1), max_timeout)
@@ -27,7 +27,7 @@ async def vectorize_text(client, text, max_retries=5, initial_timeout=1, max_tim
     raise Exception(":warning: Unexpected error occurred during vectorization.")
 
 
-def retry_request_openai(client, messages, model="gpt-4o-2024-08-06", max_retries=5, initial_timeout=1, max_timeout=60,
+def retry_request_openai(client, messages, model="generate_descriptions", max_retries=5, initial_timeout=1, max_timeout=60,
                          max_tokens=4096, json_schema=None):
     logging.info(f'Calling upon {client}')
     for attempt in range(max_retries):
@@ -52,7 +52,7 @@ def retry_request_openai(client, messages, model="gpt-4o-2024-08-06", max_retrie
             logging.info(f"Request successful on attempt {attempt + 1}")
             ai_generated_content = response.choices[0].message.content
             return ai_generated_content
-        except openai.OpenAIError as e:
+        except Exception as e:
             if attempt == max_retries - 1:
                 logging.error(f"Max retries reached. Last error: {e}")
                 error_message = f":warning: Error: OpenAI did not respond successfully after multiple attempts. \n\nLast error: \n```{str(e)}```\n\nPlease try again later."

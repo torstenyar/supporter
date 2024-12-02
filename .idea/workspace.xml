@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Retry mechanism - fix">
+    <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Fix embedding issue">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/slack_integration/event_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/slack_integration/event_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/ai_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/ai_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/azure_openai_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/azure_openai_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/fetch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/fetch_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -208,22 +211,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00029" summary="removed message">
-      <option name="closed" value="true" />
-      <created>1720003295430</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1720003295430</updated>
-    </task>
-    <task id="LOCAL-00030" summary="Ensured retriggering is possible and added retries to the azure openai calls">
-      <option name="closed" value="true" />
-      <created>1720020311079</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1720020311079</updated>
     </task>
     <task id="LOCAL-00031" summary="Removed variable changes from analysis. Can be implemented back later.">
       <option name="closed" value="true" />
@@ -601,7 +588,23 @@
       <option name="project" value="LOCAL" />
       <updated>1733139117878</updated>
     </task>
-    <option name="localTasksCounter" value="78" />
+    <task id="LOCAL-00078" summary="Retry mechanism - fix">
+      <option name="closed" value="true" />
+      <created>1733139941273</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1733139941273</updated>
+    </task>
+    <task id="LOCAL-00079" summary="Fix embedding issue">
+      <option name="closed" value="true" />
+      <created>1733140714304</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1733140714304</updated>
+    </task>
+    <option name="localTasksCounter" value="80" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -619,7 +622,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="added more specific instructions for json scheme." />
     <MESSAGE value="Added retry mechanism and corrected the part about retriggering with the same emoji." />
     <MESSAGE value="Tried to improve stability, removed JSON mode." />
     <MESSAGE value="Fixes to improve stability" />
@@ -644,6 +646,7 @@
     <MESSAGE value="html escape for &amp; sign" />
     <MESSAGE value="Retry mechanism" />
     <MESSAGE value="Retry mechanism - fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="Retry mechanism - fix" />
+    <MESSAGE value="Fix embedding issue" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix embedding issue" />
   </component>
 </project>

@@ -378,7 +378,7 @@ async def search_similar_errors(search_client, openai_client, lookup_object, fai
 
     for field, weight in vector_weights.items():
         if lookup_object.get(field.replace("_vector", "")):
-            vector = await vectorize_text(openai_client, lookup_object[field.replace("_vector", "")])
+            vector = await vectorize_text(client=openai_client, text=lookup_object[field.replace("_vector", "")])
 
             vector_query = {
                 "kind": "vector",

@@ -5,7 +5,6 @@ from openai import AzureOpenAI
 
 def initialize_client():
     """Initialize the Azure OpenAI client."""
-
     return AzureOpenAI(
         api_key=os.getenv('AZURE_API_KEY'),
         api_version="2024-10-01-preview",
