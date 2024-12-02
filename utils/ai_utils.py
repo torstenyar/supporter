@@ -6,6 +6,8 @@ import asyncio
 
 async def vectorize_text(client, text, max_retries=5, initial_timeout=1, max_timeout=60):
     logging.info(f'Calling upon {client}')
+    # Convert text to string to ensure compatibility
+    text = str(text)
     for attempt in range(max_retries):
         try:
             response = client.embeddings.create(
