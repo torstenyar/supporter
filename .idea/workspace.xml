@@ -6,12 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="2651a9ab-ea8a-4fba-aef4-8f8a8d091133" name="Changes" comment="Retry mechanism - fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/ai_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/ai_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/azure_openai_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/azure_openai_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/constructor.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/constructor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/fetch_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/fetch_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/uardi_wrapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/uardi_wrapper.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -213,14 +208,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1718186449647</updated>
-    </task>
-    <task id="LOCAL-00028" summary="Minor tweaks to code, also added some additional error handling.">
-      <option name="closed" value="true" />
-      <created>1720002630645</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1720002630645</updated>
     </task>
     <task id="LOCAL-00029" summary="removed message">
       <option name="closed" value="true" />
@@ -606,7 +593,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725546644832</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="Retry mechanism - fix">
+      <option name="closed" value="true" />
+      <created>1733139117878</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1733139117878</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
