@@ -86,7 +86,7 @@ def clean_old_message_states(states):
 
 async def retry_block_assembly(openai_client, combined_analysis, slack_client, channel_id, progress_message_ts,
                                message_timestamp, max_retries=3):
-    model = 'gpt-4o-2024-08-06'  # Start with gpt-4o-mini
+    model = 'gpt-4o-mini'
     for attempt in range(1, max_retries + 1):
         try:
             logging.info(f"Attempt {attempt} to format blocks using model {model}")
@@ -108,7 +108,7 @@ async def retry_block_assembly(openai_client, combined_analysis, slack_client, c
                             stage=f"retrying_block_formatting_{attempt}")
 
             # Retry with gpt-4o after the first attempt
-            model = 'gpt-4o-2024-08-06'
+            model = 'generate_descriptions'
 
         if attempt == max_retries:
             raise Exception("Max retries reached for block assembly.")
