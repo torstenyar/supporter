@@ -11,8 +11,7 @@ async def vectorize_text(client, text, max_retries=5, initial_timeout=1, max_tim
         try:
             response = client.embeddings.create(
                 model="text-embedding-3-large",
-                input=text,
-                dimensions=3072
+                input=text
             )
             return response.data[0].embedding
         except openai.OpenAIError as e:
